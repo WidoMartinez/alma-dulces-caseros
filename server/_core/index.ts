@@ -38,7 +38,7 @@ async function startServer() {
   // Rate limiting para protección contra fuerza bruta en login
   const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5, // límite de 5 intentos por ventana
+    max: process.env.NODE_ENV === "development" ? 100 : 5, // más permisivo en desarrollo
     message: "Demasiados intentos de inicio de sesión. Por favor, intenta más tarde.",
     standardHeaders: true,
     legacyHeaders: false,

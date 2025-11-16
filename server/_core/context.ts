@@ -36,12 +36,23 @@ export async function createContext(
     // Obtener token de sesión
     const token = getSessionToken(opts.req);
     if (token) {
+      console.log("[Context] Token encontrado en cookie");
       // Verificar token
       const session = await verifySessionToken(token);
       if (session) {
+        console.log("[Context] Token válido, usuario ID:", session.userId);
         // Obtener usuario de la base de datos
         user = (await db.getUserById(session.userId)) || null;
+        if (user) {
+          console.log("[Context] Usuario cargado:", user.username, "- Role:", user.role);
+        } else {
+          console.warn("[Context] Usuario no encontrado en BD para ID:", session.userId);
+        }
+      } else {
+        console.warn("[Context] Token inválido o expirado");
       }
+    } else {
+      console.log("[Context] No se encontró token en cookies");
     }
   } catch (error) {
     // La autenticación es opcional para procedimientos públicos

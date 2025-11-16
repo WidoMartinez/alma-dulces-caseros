@@ -29,20 +29,27 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input, ctx }) => {
+        console.log("[Auth] Intento de login:", input.usernameOrEmail);
+        
         // Autenticar usuario
         const user = await authenticateUser(input.usernameOrEmail, input.password);
         
         if (!user) {
+          console.log("[Auth] Autenticación fallida para:", input.usernameOrEmail);
           throw new TRPCError({
             code: "UNAUTHORIZED",
             message: "Credenciales inválidas",
           });
         }
 
+        console.log("[Auth] Usuario autenticado:", user.username, "- Role:", user.role);
+
         // Crear token de sesión
         const sessionToken = await createSessionToken(user, {
           expiresInMs: ONE_YEAR_MS,
         });
+
+        console.log("[Auth] Token creado, estableciendo cookie...");
 
         // Establecer cookie
         const cookieOptions = getSessionCookieOptions(ctx.req);
@@ -50,6 +57,8 @@ export const appRouter = router({
           ...cookieOptions,
           maxAge: ONE_YEAR_MS,
         });
+
+        console.log("[Auth] Cookie establecida. Opciones:", JSON.stringify(cookieOptions));
 
         return {
           success: true,
