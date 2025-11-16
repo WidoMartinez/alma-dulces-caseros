@@ -1,7 +1,14 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, categories, products, orders, reservations } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  InsertUser,
+  users,
+  categories,
+  products,
+  orders,
+  reservations,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _dbConnectionFailed = false;
@@ -11,16 +18,21 @@ export async function getDb() {
   if (_dbConnectionFailed) {
     return null;
   }
-  
+
   if (!_db && process.env.DATABASE_URL) {
     try {
-      const mysql = await import('mysql2/promise');
-      const connection = await mysql.default.createConnection(process.env.DATABASE_URL);
+      const mysql = await import("mysql2/promise");
+      const connection = await mysql.default.createConnection(
+        process.env.DATABASE_URL
+      );
       await connection.ping();
       await connection.end();
       _db = drizzle(process.env.DATABASE_URL);
     } catch (error) {
-      console.warn("[Database] Failed to connect, using mock data:", error instanceof Error ? error.message : error);
+      console.warn(
+        "[Database] Failed to connect, using mock data:",
+        error instanceof Error ? error.message : error
+      );
       _dbConnectionFailed = true;
       _db = null;
     }
@@ -66,8 +78,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -94,7 +106,11 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -108,7 +124,8 @@ export async function getAllProducts() {
         id: 1,
         categoryId: 1,
         name: "Tarta de Frutos Rojos",
-        description: "Deliciosa tarta con frutos rojos frescos y crema artesanal",
+        description:
+          "Deliciosa tarta con frutos rojos frescos y crema artesanal",
         ingredients: "Fresas, frambuesas, arándanos, crema, harina integral",
         price: 25000,
         imageUrl: null,
@@ -216,7 +233,11 @@ export async function getAllProducts() {
 export async function getProductById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, id))
+    .limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -231,10 +252,30 @@ export async function getAllCategories() {
   if (!db) {
     // Return mock data when database is not available
     return [
-      { id: 1, name: "Tartas", description: "Tartas artesanales deliciosas", createdAt: new Date() },
-      { id: 2, name: "Galletas", description: "Galletas crujientes y sabrosas", createdAt: new Date() },
-      { id: 3, name: "Brownies", description: "Brownies de chocolate intenso", createdAt: new Date() },
-      { id: 4, name: "Mermeladas", description: "Mermeladas caseras naturales", createdAt: new Date() },
+      {
+        id: 1,
+        name: "Tartas",
+        description: "Tartas artesanales deliciosas",
+        createdAt: new Date(),
+      },
+      {
+        id: 2,
+        name: "Galletas",
+        description: "Galletas crujientes y sabrosas",
+        createdAt: new Date(),
+      },
+      {
+        id: 3,
+        name: "Brownies",
+        description: "Brownies de chocolate intenso",
+        createdAt: new Date(),
+      },
+      {
+        id: 4,
+        name: "Mermeladas",
+        description: "Mermeladas caseras naturales",
+        createdAt: new Date(),
+      },
     ];
   }
   return db.select().from(categories);
