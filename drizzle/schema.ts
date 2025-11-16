@@ -22,6 +22,10 @@ export const users = mysqlTable("users", {
   name: text("name"),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  /** Dirección de entrega predeterminada */
+  deliveryAddress: text("deliveryAddress"),
+  /** Teléfono de contacto */
+  phone: varchar("phone", { length: 20 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -59,11 +63,22 @@ export type InsertProduct = typeof products.$inferInsert;
 
 export const orders = mysqlTable("orders", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+  /** ID de usuario (null para invitados) */
+  userId: int("userId"),
+  /** Número de seguimiento único para el pedido */
+  trackingNumber: varchar("trackingNumber", { length: 32 }).unique().notNull(),
+  /** Email para seguimiento (especialmente para invitados) */
+  customerEmail: varchar("customerEmail", { length: 320 }).notNull(),
+  /** Nombre del cliente */
+  customerName: varchar("customerName", { length: 255 }).notNull(),
+  /** Teléfono de contacto */
+  customerPhone: varchar("customerPhone", { length: 20 }),
+  /** Indica si es una compra como invitado */
+  isGuest: int("isGuest").default(0).notNull(),
   totalPrice: int("totalPrice").notNull(), // Total in cents
   status: mysqlEnum("status", ["pending", "confirmed", "shipped", "delivered", "cancelled"]).default("pending").notNull(),
   deliveryDate: timestamp("deliveryDate"),
-  deliveryAddress: text("deliveryAddress"),
+  deliveryAddress: text("deliveryAddress").notNull(),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
