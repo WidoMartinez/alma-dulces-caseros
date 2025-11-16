@@ -52,16 +52,33 @@ export default function Checkout({ cartItems, onCheckoutComplete }: CheckoutProp
     }
   }, [profile]);
 
+  // Mutation para crear la orden
   const createOrderMutation = trpc.orders.create.useMutation({
     onSuccess: (data) => {
-      toast.success("¡Pedido creado exitosamente!");
-      setLocation(`/track-order?tracking=${data.trackingNumber}`);
-      onCheckoutComplete();
+      console.log("[Checkout] Orden creada, iniciando pago:", data);
+      // Una vez creada la orden, iniciar el proceso de pago
+      createPaymentMutation.mutate({
+        orderId: data.orderId,
+        amount: total,
+        customerEmail: customerEmail.trim(),
+        subject: `Pedido Alma Dulces - ${data.trackingNumber}`,
+      });
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear el pedido");
+      setIsLoading(false);
     },
-    onSettled: () => {
+  });
+
+  // Mutation para crear el pago en Flow
+  const createPaymentMutation = trpc.payment.create.useMutation({
+    onSuccess: (data) => {
+      console.log("[Checkout] Pago creado, redirigiendo a Flow:", data.paymentUrl);
+      // Redirigir al usuario a la pasarela de pago de Flow
+      window.location.href = data.paymentUrl;
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al iniciar el pago");
       setIsLoading(false);
     },
   });
@@ -244,11 +261,11 @@ export default function Checkout({ cartItems, onCheckoutComplete }: CheckoutProp
                   {isLoading ? (
                     <>
                       <span className="animate-spin mr-2">⏳</span>
-                      Procesando...
+                      {createPaymentMutation.isLoading ? "Redirigiendo a pago..." : "Procesando..."}
                     </>
                   ) : (
                     <>
-                      Confirmar Pedido
+                      Proceder al Pago
                     </>
                   )}
                 </Button>
@@ -303,7 +320,7 @@ export default function Checkout({ cartItems, onCheckoutComplete }: CheckoutProp
 
                 <div className="bg-accent/10 rounded-lg p-4 border border-accent/20">
                   <p className="text-xs text-muted-foreground">
-                    <strong>Nota:</strong> El pago se coordinará directamente con el equipo de Alma Dulces Caseros. Recibirás un email con los detalles de tu pedido y las opciones de pago disponibles.
+                    <strong>Pago Seguro:</strong> Serás redirigido a Flow, la pasarela de pago más segura de Chile, para completar tu compra. Puedes pagar con Webpay, Servipag, Multicaja, tarjetas de crédito/débito y más.
                   </p>
                 </div>
               </div>

@@ -10,6 +10,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import TrackOrder from "./pages/TrackOrder";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentError from "./pages/PaymentError";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -20,6 +22,8 @@ function Router() {
       <Route path={"/register"} component={Register} />
       <Route path={"/profile"} component={Profile} />
       <Route path={"/track-order"} component={TrackOrder} />
+      <Route path={"/payment/success"} component={PaymentSuccess} />
+      <Route path={"/payment/error"} component={PaymentError} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
