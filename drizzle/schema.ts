@@ -112,3 +112,34 @@ export const reservations = mysqlTable("reservations", {
 
 export type Reservation = typeof reservations.$inferSelect;
 export type InsertReservation = typeof reservations.$inferInsert;
+
+/**
+ * Tabla de transacciones de pago con Flow
+ * Almacena información de pagos procesados a través de la pasarela Flow
+ */
+export const paymentTransactions = mysqlTable("paymentTransactions", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID del pedido asociado */
+  orderId: int("orderId").notNull(),
+  /** Token de Flow para identificar la transacción */
+  flowToken: varchar("flowToken", { length: 255 }),
+  /** ID de la orden de comercio (generado por nosotros) */
+  commerceOrder: varchar("commerceOrder", { length: 64 }).notNull(),
+  /** ID de la orden de Flow (retornado por Flow) */
+  flowOrder: varchar("flowOrder", { length: 64 }),
+  /** Monto de la transacción en centavos */
+  amount: int("amount").notNull(),
+  /** Estado de la transacción */
+  status: mysqlEnum("status", ["pending", "completed", "rejected", "cancelled"]).default("pending").notNull(),
+  /** Método de pago utilizado (Webpay, Servipag, etc) */
+  paymentMethod: varchar("paymentMethod", { length: 50 }),
+  /** Datos adicionales de la transacción en formato JSON */
+  paymentData: text("paymentData"),
+  /** Fecha de creación de la transacción */
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  /** Fecha de última actualización */
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type InsertPaymentTransaction = typeof paymentTransactions.$inferInsert;

@@ -10,6 +10,9 @@ import {
   orders,
   orderItems,
   reservations,
+  paymentTransactions,
+  InsertPaymentTransaction,
+  PaymentTransaction,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -709,6 +712,170 @@ export async function updateUserProfile(
     return updatedUser;
   } catch (error) {
     console.error("[Database] Failed to update user profile:", error);
+    throw error;
+  }
+}
+
+// Funciones para transacciones de pago con Flow
+
+/**
+ * Crea una nueva transacción de pago
+ */
+export async function createPaymentTransaction(
+  transactionData: InsertPaymentTransaction
+): Promise<PaymentTransaction> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db.insert(paymentTransactions).values(transactionData);
+    const transactionId = Number(result[0].insertId);
+    
+    const transaction = await db
+      .select()
+      .from(paymentTransactions)
+      .where(eq(paymentTransactions.id, transactionId))
+      .limit(1);
+    
+    if (transaction.length === 0) {
+      throw new Error("Failed to retrieve created transaction");
+    }
+    
+    return transaction[0];
+  } catch (error) {
+    console.error("[Database] Failed to create payment transaction:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene una transacción de pago por su token de Flow
+ */
+export async function getPaymentTransactionByToken(
+  flowToken: string
+): Promise<PaymentTransaction | null> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(paymentTransactions)
+      .where(eq(paymentTransactions.flowToken, flowToken))
+      .limit(1);
+    
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to get payment transaction by token:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene una transacción de pago por el ID de comercio
+ */
+export async function getPaymentTransactionByCommerceOrder(
+  commerceOrder: string
+): Promise<PaymentTransaction | null> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(paymentTransactions)
+      .where(eq(paymentTransactions.commerceOrder, commerceOrder))
+      .limit(1);
+    
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to get payment transaction by commerce order:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene transacciones de pago por ID de orden
+ */
+export async function getPaymentTransactionsByOrderId(
+  orderId: number
+): Promise<PaymentTransaction[]> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(paymentTransactions)
+      .where(eq(paymentTransactions.orderId, orderId));
+    
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to get payment transactions by order:", error);
+    throw error;
+  }
+}
+
+/**
+ * Actualiza una transacción de pago
+ */
+export async function updatePaymentTransaction(
+  transactionId: number,
+  updateData: Partial<InsertPaymentTransaction>
+): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db
+      .update(paymentTransactions)
+      .set(updateData)
+      .where(eq(paymentTransactions.id, transactionId));
+  } catch (error) {
+    console.error("[Database] Failed to update payment transaction:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene un pedido por su ID
+ */
+export async function getOrderById(orderId: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+    
+    if (result.length === 0) return null;
+    
+    const order = result[0];
+    
+    // Obtener los items del pedido
+    const items = await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, order.id));
+    
+    return { ...order, items };
+  } catch (error) {
+    console.error("[Database] Failed to get order by id:", error);
     throw error;
   }
 }
