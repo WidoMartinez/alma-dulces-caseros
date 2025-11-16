@@ -1,0 +1,39 @@
+# Configuración de Agentes Personalizados para GitHub Copilot
+
+agents:
+  - name: payment-agent
+    description: "Agente especializado en implementación de pasarelas de pago"
+    enabled: true
+    expertise:
+      - Integración de pasarelas de pago (Stripe, MercadoPago, PayPal)
+      - Seguridad en transacciones financieras
+      - Implementación de webhooks
+      - Procesamiento de pagos con TypeScript
+      - Base de datos para transacciones (Drizzle ORM + MySQL)
+
+    context:
+      project: alma-dulces-caseros
+      stack:
+        - TypeScript
+        - React 19
+        - Express
+        - tRPC
+        - MySQL
+        - Drizzle ORM
+
+    behaviors:
+      - Siempre validar con Zod
+      - Usar TypeScript estricto
+      - Seguir arquitectura tRPC existente
+      - Implementar seguridad PCI-DSS
+      - Crear tests con Vitest
+      - Documentar en español
+
+    triggers:
+      - "pago"
+      - "pasarela"
+      - "checkout"
+      - "stripe"
+      - "mercadopago"
+      - "transacción"
+      - "webhook"
