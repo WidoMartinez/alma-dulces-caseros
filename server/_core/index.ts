@@ -30,24 +30,25 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  
+
   // Rate limiting para protección contra fuerza bruta en login
   const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
     max: process.env.NODE_ENV === "development" ? 100 : 5, // más permisivo en desarrollo
-    message: "Demasiados intentos de inicio de sesión. Por favor, intenta más tarde.",
+    message:
+      "Demasiados intentos de inicio de sesión. Por favor, intenta más tarde.",
     standardHeaders: true,
     legacyHeaders: false,
     // Aplicar solo a rutas de autenticación
-    skip: (req) => !req.url.includes("/api/trpc/auth.login"),
+    skip: req => !req.url.includes("/api/trpc/auth.login"),
   });
 
   app.use(loginLimiter);
-  
+
   // tRPC API
   app.use(
     "/api/trpc",

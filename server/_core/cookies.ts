@@ -26,7 +26,7 @@ export function getSessionCookieOptions(
 ): Pick<CookieOptions, "domain" | "httpOnly" | "path" | "sameSite" | "secure"> {
   const isSecure = isSecureRequest(req);
   const isLocalhost = LOCAL_HOSTS.has(req.hostname);
-  
+
   // En desarrollo local (HTTP), usar 'lax' porque 'none' requiere HTTPS
   // En producción (HTTPS), usar 'none' para compatibilidad con subdominios
   const sameSite = isSecure ? "none" : "lax";

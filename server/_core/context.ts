@@ -14,7 +14,9 @@ export type TrpcContext = {
 /**
  * Obtiene el token de sesión desde las cookies
  */
-function getSessionToken(req: CreateExpressContextOptions["req"]): string | null {
+function getSessionToken(
+  req: CreateExpressContextOptions["req"]
+): string | null {
   const cookieHeader = req.headers.cookie;
   if (!cookieHeader) {
     return null;
@@ -44,9 +46,17 @@ export async function createContext(
         // Obtener usuario de la base de datos
         user = (await db.getUserById(session.userId)) || null;
         if (user) {
-          console.log("[Context] Usuario cargado:", user.username, "- Role:", user.role);
+          console.log(
+            "[Context] Usuario cargado:",
+            user.username,
+            "- Role:",
+            user.role
+          );
         } else {
-          console.warn("[Context] Usuario no encontrado en BD para ID:", session.userId);
+          console.warn(
+            "[Context] Usuario no encontrado en BD para ID:",
+            session.userId
+          );
         }
       } else {
         console.warn("[Context] Token inválido o expirado");

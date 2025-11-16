@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import 'dotenv/config';
+import "dotenv/config";
 
 const connection = await mysql.createConnection(process.env.DATABASE_URL);
 
@@ -38,7 +38,6 @@ try {
   console.log("✓ Usuarios actualizados con username");
 
   console.log("\n✅ Migración completada exitosamente");
-
 } catch (error) {
   console.error("❌ Error:", error.message);
 } finally {
