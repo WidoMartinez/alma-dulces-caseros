@@ -120,8 +120,7 @@ const mockProducts = [
     id: 1,
     categoryId: 1,
     name: "Tarta de Frutos Rojos",
-    description:
-      "Deliciosa tarta con frutos rojos frescos y crema artesanal",
+    description: "Deliciosa tarta con frutos rojos frescos y crema artesanal",
     ingredients: "Fresas, frambuesas, arándanos, crema, harina integral",
     price: 25000,
     imageUrl: null,
@@ -224,10 +223,30 @@ const mockProducts = [
 ];
 
 const mockCategories = [
-  { id: 1, name: "Tartas", description: "Tartas artesanales deliciosas", createdAt: new Date() },
-  { id: 2, name: "Galletas", description: "Galletas crujientes y sabrosas", createdAt: new Date() },
-  { id: 3, name: "Brownies", description: "Brownies de chocolate intenso", createdAt: new Date() },
-  { id: 4, name: "Mermeladas", description: "Mermeladas caseras naturales", createdAt: new Date() },
+  {
+    id: 1,
+    name: "Tartas",
+    description: "Tartas artesanales deliciosas",
+    createdAt: new Date(),
+  },
+  {
+    id: 2,
+    name: "Galletas",
+    description: "Galletas crujientes y sabrosas",
+    createdAt: new Date(),
+  },
+  {
+    id: 3,
+    name: "Brownies",
+    description: "Brownies de chocolate intenso",
+    createdAt: new Date(),
+  },
+  {
+    id: 4,
+    name: "Mermeladas",
+    description: "Mermeladas caseras naturales",
+    createdAt: new Date(),
+  },
 ];
 
 export async function getAllProducts() {
@@ -235,11 +254,14 @@ export async function getAllProducts() {
   if (!db) {
     return mockProducts;
   }
-  
+
   try {
     return await db.select().from(products);
   } catch (error) {
-    console.warn("[Database] Query failed, using mock data:", error instanceof Error ? error.message : error);
+    console.warn(
+      "[Database] Query failed, using mock data:",
+      error instanceof Error ? error.message : error
+    );
     _dbConnectionFailed = true;
     _db = null;
     return mockProducts;
@@ -268,11 +290,14 @@ export async function getAllCategories() {
   if (!db) {
     return mockCategories;
   }
-  
+
   try {
     return await db.select().from(categories);
   } catch (error) {
-    console.warn("[Database] Query failed, using mock data:", error instanceof Error ? error.message : error);
+    console.warn(
+      "[Database] Query failed, using mock data:",
+      error instanceof Error ? error.message : error
+    );
     _dbConnectionFailed = true;
     _db = null;
     return mockCategories;
