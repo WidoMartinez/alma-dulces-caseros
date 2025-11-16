@@ -115,119 +115,135 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+const mockProducts = [
+  {
+    id: 1,
+    categoryId: 1,
+    name: "Tarta de Frutos Rojos",
+    description:
+      "Deliciosa tarta con frutos rojos frescos y crema artesanal",
+    ingredients: "Fresas, frambuesas, arándanos, crema, harina integral",
+    price: 25000,
+    imageUrl: null,
+    available: 5,
+    organic: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 2,
+    categoryId: 1,
+    name: "Tarta de Chocolate",
+    description: "Tarta de chocolate belga con relleno cremoso",
+    ingredients: "Chocolate 70%, crema, huevos, azúcar morena",
+    price: 28000,
+    imageUrl: null,
+    available: 8,
+    organic: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 3,
+    categoryId: 2,
+    name: "Galletas de Avena y Miel",
+    description: "Galletas crujientes con avena y miel pura",
+    ingredients: "Avena, miel, mantequilla, harina de trigo integral",
+    price: 8000,
+    imageUrl: null,
+    available: 20,
+    organic: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 4,
+    categoryId: 2,
+    name: "Galletas de Almendra",
+    description: "Galletas delicadas con almendra molida",
+    ingredients: "Almendra, huevo, azúcar de caña, vainilla",
+    price: 9500,
+    imageUrl: null,
+    available: 15,
+    organic: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 5,
+    categoryId: 3,
+    name: "Brownie de Chocolate Oscuro",
+    description: "Brownie denso y jugoso de chocolate oscuro",
+    ingredients: "Chocolate 85%, mantequilla, huevos, harina",
+    price: 12000,
+    imageUrl: null,
+    available: 12,
+    organic: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 6,
+    categoryId: 3,
+    name: "Brownie con Nueces",
+    description: "Brownie con nueces de macadamia tostadas",
+    ingredients: "Chocolate, nueces, mantequilla, huevos",
+    price: 14000,
+    imageUrl: null,
+    available: 10,
+    organic: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 7,
+    categoryId: 4,
+    name: "Mermelada de Fresa",
+    description: "Mermelada casera de fresa sin conservantes",
+    ingredients: "Fresas, azúcar de caña, limón",
+    price: 7500,
+    imageUrl: null,
+    available: 25,
+    organic: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 8,
+    categoryId: 4,
+    name: "Mermelada de Frambuesa",
+    description: "Mermelada artesanal de frambuesa silvestre",
+    ingredients: "Frambuesas, azúcar, limón",
+    price: 8500,
+    imageUrl: null,
+    available: 18,
+    organic: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
+
+const mockCategories = [
+  { id: 1, name: "Tartas", description: "Tartas artesanales deliciosas", createdAt: new Date() },
+  { id: 2, name: "Galletas", description: "Galletas crujientes y sabrosas", createdAt: new Date() },
+  { id: 3, name: "Brownies", description: "Brownies de chocolate intenso", createdAt: new Date() },
+  { id: 4, name: "Mermeladas", description: "Mermeladas caseras naturales", createdAt: new Date() },
+];
+
 export async function getAllProducts() {
   const db = await getDb();
   if (!db) {
-    // Return mock data when database is not available
-    return [
-      {
-        id: 1,
-        categoryId: 1,
-        name: "Tarta de Frutos Rojos",
-        description:
-          "Deliciosa tarta con frutos rojos frescos y crema artesanal",
-        ingredients: "Fresas, frambuesas, arándanos, crema, harina integral",
-        price: 25000,
-        imageUrl: null,
-        available: 5,
-        organic: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 2,
-        categoryId: 1,
-        name: "Tarta de Chocolate",
-        description: "Tarta de chocolate belga con relleno cremoso",
-        ingredients: "Chocolate 70%, crema, huevos, azúcar morena",
-        price: 28000,
-        imageUrl: null,
-        available: 8,
-        organic: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 3,
-        categoryId: 2,
-        name: "Galletas de Avena y Miel",
-        description: "Galletas crujientes con avena y miel pura",
-        ingredients: "Avena, miel, mantequilla, harina de trigo integral",
-        price: 8000,
-        imageUrl: null,
-        available: 20,
-        organic: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 4,
-        categoryId: 2,
-        name: "Galletas de Almendra",
-        description: "Galletas delicadas con almendra molida",
-        ingredients: "Almendra, huevo, azúcar de caña, vainilla",
-        price: 9500,
-        imageUrl: null,
-        available: 15,
-        organic: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 5,
-        categoryId: 3,
-        name: "Brownie de Chocolate Oscuro",
-        description: "Brownie denso y jugoso de chocolate oscuro",
-        ingredients: "Chocolate 85%, mantequilla, huevos, harina",
-        price: 12000,
-        imageUrl: null,
-        available: 12,
-        organic: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 6,
-        categoryId: 3,
-        name: "Brownie con Nueces",
-        description: "Brownie con nueces de macadamia tostadas",
-        ingredients: "Chocolate, nueces, mantequilla, huevos",
-        price: 14000,
-        imageUrl: null,
-        available: 10,
-        organic: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 7,
-        categoryId: 4,
-        name: "Mermelada de Fresa",
-        description: "Mermelada casera de fresa sin conservantes",
-        ingredients: "Fresas, azúcar de caña, limón",
-        price: 7500,
-        imageUrl: null,
-        available: 25,
-        organic: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 8,
-        categoryId: 4,
-        name: "Mermelada de Frambuesa",
-        description: "Mermelada artesanal de frambuesa silvestre",
-        ingredients: "Frambuesas, azúcar, limón",
-        price: 8500,
-        imageUrl: null,
-        available: 18,
-        organic: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
+    return mockProducts;
   }
-  return db.select().from(products);
+  
+  try {
+    return await db.select().from(products);
+  } catch (error) {
+    console.warn("[Database] Query failed, using mock data:", error instanceof Error ? error.message : error);
+    _dbConnectionFailed = true;
+    _db = null;
+    return mockProducts;
+  }
 }
 
 export async function getProductById(id: number) {
@@ -250,35 +266,17 @@ export async function getProductsByCategory(categoryId: number) {
 export async function getAllCategories() {
   const db = await getDb();
   if (!db) {
-    // Return mock data when database is not available
-    return [
-      {
-        id: 1,
-        name: "Tartas",
-        description: "Tartas artesanales deliciosas",
-        createdAt: new Date(),
-      },
-      {
-        id: 2,
-        name: "Galletas",
-        description: "Galletas crujientes y sabrosas",
-        createdAt: new Date(),
-      },
-      {
-        id: 3,
-        name: "Brownies",
-        description: "Brownies de chocolate intenso",
-        createdAt: new Date(),
-      },
-      {
-        id: 4,
-        name: "Mermeladas",
-        description: "Mermeladas caseras naturales",
-        createdAt: new Date(),
-      },
-    ];
+    return mockCategories;
   }
-  return db.select().from(categories);
+  
+  try {
+    return await db.select().from(categories);
+  } catch (error) {
+    console.warn("[Database] Query failed, using mock data:", error instanceof Error ? error.message : error);
+    _dbConnectionFailed = true;
+    _db = null;
+    return mockCategories;
+  }
 }
 
 export async function getUserOrders(userId: number) {
