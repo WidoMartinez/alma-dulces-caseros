@@ -4,14 +4,24 @@ import { InsertUser, users, categories, products, orders, reservations } from ".
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _dbConnectionFailed = false;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
+  if (_dbConnectionFailed) {
+    return null;
+  }
+  
   if (!_db && process.env.DATABASE_URL) {
     try {
+      const mysql = await import('mysql2/promise');
+      const connection = await mysql.default.createConnection(process.env.DATABASE_URL);
+      await connection.ping();
+      await connection.end();
       _db = drizzle(process.env.DATABASE_URL);
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.warn("[Database] Failed to connect, using mock data:", error instanceof Error ? error.message : error);
+      _dbConnectionFailed = true;
       _db = null;
     }
   }
