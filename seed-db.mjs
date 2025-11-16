@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import 'dotenv/config';
+import "dotenv/config";
 
 const connection = await mysql.createConnection(process.env.DATABASE_URL);
 
@@ -23,7 +23,9 @@ for (const cat of categories) {
 }
 
 // Get category IDs
-const [categoriesResult] = await connection.execute("SELECT id, name FROM categories");
+const [categoriesResult] = await connection.execute(
+  "SELECT id, name FROM categories"
+);
 
 const categoryMap = {};
 categoriesResult.forEach(cat => {
