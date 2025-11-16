@@ -12,12 +12,14 @@ import ContactSection from "@/components/sections/ContactSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import Navigation from "@/components/Navigation";
 import Cart from "@/components/Cart";
+import Checkout from "@/pages/Checkout";
 import { Toaster } from "sonner";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [activeSection, setActiveSection] = useState("inicio");
   const [showCart, setShowCart] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const [cartItems, setCartItems] = useState<Array<{ productId: number; quantity: number }>>([]);
   
   const { data: products = [] } = trpc.products.list.useQuery();
@@ -41,6 +43,16 @@ export default function Home() {
     setCartItems(prev => prev.filter(item => item.productId !== productId));
   };
 
+  const handleCheckout = () => {
+    setShowCart(false);
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutComplete = () => {
+    setCartItems([]);
+    setShowCheckout(false);
+  };
+
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
     const element = document.getElementById(sectionId);
@@ -48,6 +60,16 @@ export default function Home() {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  // Si estamos en modo checkout, mostrar solo el componente de checkout
+  if (showCheckout) {
+    return (
+      <Checkout 
+        cartItems={cartItems}
+        onCheckoutComplete={handleCheckoutComplete}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -65,6 +87,7 @@ export default function Home() {
           products={products}
           onRemove={removeFromCart}
           onClose={() => setShowCart(false)}
+          onCheckout={handleCheckout}
         />
       )}
 
@@ -106,16 +129,30 @@ export default function Home() {
               <p className="text-sm opacity-90">{BRAND_INFO.description}</p>
             </div>
             <div>
+              <h4 className="font-semibold mb-4">Enlaces Rápidos</h4>
+              <div className="space-y-2">
+                <a href="/track-order" className="block text-sm opacity-90 hover:opacity-100">
+                  Seguir mi pedido
+                </a>
+                <a href="/register" className="block text-sm opacity-90 hover:opacity-100">
+                  Crear cuenta
+                </a>
+                <a href="/login" className="block text-sm opacity-90 hover:opacity-100">
+                  Iniciar sesión
+                </a>
+              </div>
+            </div>
+            <div>
               <h4 className="font-semibold mb-4">Ubicación</h4>
               <p className="text-sm opacity-90 flex items-center gap-2">
                 <MapPin size={16} />
                 {BRAND_INFO.location}
               </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Contacto</h4>
-              <p className="text-sm opacity-90">Email: info@alma-dulces.cl</p>
-              <p className="text-sm opacity-90">Tel: +56 9 XXXX XXXX</p>
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Contacto</h4>
+                <p className="text-sm opacity-90">Email: info@alma-dulces.cl</p>
+                <p className="text-sm opacity-90">Tel: +56 9 XXXX XXXX</p>
+              </div>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Síguenos</h4>

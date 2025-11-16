@@ -80,12 +80,25 @@ export default function Navigation({
               )}
             </button>
 
-            {!isAuthenticated && (
-              <a href={getLoginUrl()}>
+            {isAuthenticated ? (
+              <a href="/profile">
                 <Button variant="default" size="sm" className="hidden sm:inline-flex">
-                  Ingresar
+                  Mi Cuenta
                 </Button>
               </a>
+            ) : (
+              <div className="hidden sm:flex items-center gap-2">
+                <a href="/register">
+                  <Button variant="outline" size="sm">
+                    Registrarse
+                  </Button>
+                </a>
+                <a href={getLoginUrl()}>
+                  <Button variant="default" size="sm">
+                    Ingresar
+                  </Button>
+                </a>
+              </div>
             )}
 
             {/* Mobile Menu Button */}
@@ -114,12 +127,25 @@ export default function Navigation({
                 {item.label}
               </button>
             ))}
-            {!isAuthenticated && (
-              <a href={getLoginUrl()} className="block">
+            {isAuthenticated ? (
+              <a href="/profile" className="block">
                 <Button variant="default" size="sm" className="w-full">
-                  Ingresar
+                  Mi Cuenta
                 </Button>
               </a>
+            ) : (
+              <>
+                <a href="/register" className="block">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Registrarse
+                  </Button>
+                </a>
+                <a href={getLoginUrl()} className="block">
+                  <Button variant="default" size="sm" className="w-full">
+                    Ingresar
+                  </Button>
+                </a>
+              </>
             )}
           </div>
         )}

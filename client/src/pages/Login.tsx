@@ -140,14 +140,33 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <Button
-              variant="link"
-              onClick={() => setLocation("/")}
-              className="text-sm text-muted-foreground"
-            >
-              Volver al inicio
-            </Button>
+          <div className="mt-6 text-center space-y-2">
+            <p className="text-sm text-muted-foreground">
+              ¿No tienes cuenta?{" "}
+              <Button
+                variant="link"
+                onClick={() => setLocation("/register")}
+                className="p-0 h-auto text-sm"
+              >
+                Regístrate aquí
+              </Button>
+            </p>
+            <div className="flex justify-center gap-4">
+              <Button
+                variant="link"
+                onClick={() => setLocation("/track-order")}
+                className="text-sm text-muted-foreground"
+              >
+                Seguir pedido
+              </Button>
+              <Button
+                variant="link"
+                onClick={() => setLocation("/")}
+                className="text-sm text-muted-foreground"
+              >
+                Volver al inicio
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
