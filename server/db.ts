@@ -1,8 +1,9 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
   InsertProduct,
+  User,
   users,
   categories,
   products,
@@ -114,6 +115,117 @@ export async function getUserByOpenId(openId: string) {
     .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Obtiene un usuario por su ID
+ */
+export async function getUserById(id: number): Promise<User | undefined> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Obtiene un usuario por username o email
+ */
+export async function getUserByUsernameOrEmail(
+  usernameOrEmail: string
+): Promise<User | undefined> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(
+      or(
+        eq(users.username, usernameOrEmail),
+        eq(users.email, usernameOrEmail)
+      )
+    )
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Crea un nuevo usuario
+ */
+export async function createUser(user: InsertUser): Promise<User> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db.insert(users).values(user);
+    const insertId = Number(result[0].insertId);
+    const createdUser = await getUserById(insertId);
+    if (!createdUser) {
+      throw new Error("Failed to retrieve created user");
+    }
+    return createdUser;
+  } catch (error) {
+    console.error("[Database] Failed to create user:", error);
+    throw error;
+  }
+}
+
+/**
+ * Actualiza la última conexión de un usuario
+ */
+export async function updateUserLastSignIn(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update user: database not available");
+    return;
+  }
+
+  try {
+    await db
+      .update(users)
+      .set({ lastSignedIn: new Date() })
+      .where(eq(users.id, userId));
+  } catch (error) {
+    console.error("[Database] Failed to update user last sign in:", error);
+  }
+}
+
+/**
+ * Actualiza la contraseña de un usuario
+ */
+export async function updateUserPassword(
+  userId: number,
+  passwordHash: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db
+      .update(users)
+      .set({ password: passwordHash })
+      .where(eq(users.id, userId));
+  } catch (error) {
+    console.error("[Database] Failed to update user password:", error);
+    throw error;
+  }
 }
 
 const mockProducts = [

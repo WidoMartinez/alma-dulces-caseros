@@ -1,7 +1,9 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure, adminProcedure } from "./_core/trpc";
+import { authenticateUser, createSessionToken } from "./_core/auth";
 import { 
   getAllProducts, 
   getProductById, 
@@ -18,6 +20,49 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    
+    login: publicProcedure
+      .input(
+        z.object({
+          usernameOrEmail: z.string().min(1, "Username o email requerido"),
+          password: z.string().min(1, "Contraseña requerida"),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        // Autenticar usuario
+        const user = await authenticateUser(input.usernameOrEmail, input.password);
+        
+        if (!user) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Credenciales inválidas",
+          });
+        }
+
+        // Crear token de sesión
+        const sessionToken = await createSessionToken(user, {
+          expiresInMs: ONE_YEAR_MS,
+        });
+
+        // Establecer cookie
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, {
+          ...cookieOptions,
+          maxAge: ONE_YEAR_MS,
+        });
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+        };
+      }),
+
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
