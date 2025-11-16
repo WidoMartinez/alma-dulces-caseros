@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
+  InsertProduct,
   users,
   categories,
   products,
@@ -314,4 +315,55 @@ export async function getUserReservations(userId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(reservations).where(eq(reservations.userId, userId));
+}
+
+// Admin CRUD operations for products
+export async function createProduct(product: InsertProduct) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  
+  try {
+    const result = await db.insert(products).values(product);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to create product:", error);
+    throw error;
+  }
+}
+
+export async function updateProduct(id: number, product: Partial<InsertProduct>) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  
+  try {
+    const result = await db
+      .update(products)
+      .set(product)
+      .where(eq(products.id, id));
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to update product:", error);
+    throw error;
+  }
+}
+
+export async function deleteProduct(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  
+  try {
+    const result = await db
+      .delete(products)
+      .where(eq(products.id, id));
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to delete product:", error);
+    throw error;
+  }
 }
