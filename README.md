@@ -5,10 +5,14 @@ Sitio web para Alma Dulces Caseros, una tienda de repostería artesanal en Temuc
 ## Características Principales
 
 ### Para Clientes
+- 👤 **Registro de Clientes**: Crea una cuenta para acceso completo
 - 🛍️ **Catálogo de Productos**: Explora productos organizados por categorías
 - 🛒 **Carrito de Compras**: Agrega productos y gestiona tu pedido
+- 💳 **Checkout Completo**: Compra como usuario registrado o invitado
+- 📦 **Seguimiento de Pedidos**: Rastrea tus pedidos con número único
+- 👤 **Gestión de Perfil**: Administra tu información y dirección de entrega
+- 📜 **Historial de Compras**: Accede a todos tus pedidos anteriores
 - 📅 **Sistema de Reservas**: Reserva productos para fechas específicas
-- 💳 **Proceso de Pago**: Sistema de pago integrado
 - 📧 **Notificaciones por Email**: Confirmaciones y actualizaciones
 
 ### Para Administradores
@@ -16,6 +20,7 @@ Sitio web para Alma Dulces Caseros, una tienda de repostería artesanal en Temuc
 - ➕ **Gestión de Productos**: CRUD completo (Crear, Leer, Actualizar, Eliminar)
 - 📊 **Visualización de Inventario**: Control de stock en tiempo real
 - 🏷️ **Gestión por Categorías**: Organiza productos eficientemente
+- 📦 **Gestión de Pedidos**: Actualiza estados de pedidos
 
 ## Tecnologías Utilizadas
 
@@ -189,16 +194,23 @@ Para más detalles, consulta la [Guía del Panel Administrativo](./docs/ADMIN.md
 ### Esquema Principal
 
 **Tablas:**
-- `users` - Usuarios del sistema
+- `users` - Usuarios del sistema (clientes y administradores)
 - `categories` - Categorías de productos
 - `products` - Productos del catálogo
-- `orders` - Pedidos de clientes
+- `orders` - Pedidos de clientes (registrados e invitados)
 - `orderItems` - Ítems de cada pedido
 - `reservations` - Reservas de productos
 
 ### Roles de Usuario
-- **user** - Usuario normal (cliente)
+- **user** - Usuario normal (cliente registrado)
 - **admin** - Administrador del sistema
+
+### Características de Orders
+- Soporte para **clientes registrados** (con userId)
+- Soporte para **compras como invitado** (userId null, isGuest = 1)
+- **Número de seguimiento único** por pedido (trackingNumber)
+- Estados: pending, confirmed, shipped, delivered, cancelled
+- Información completa del cliente para coordinación
 
 ## API (tRPC)
 
@@ -217,13 +229,38 @@ trpc.auth.login.mutate({             // Iniciar sesión
   usernameOrEmail: "admin",
   password: "password123"
 })
+trpc.auth.register.mutate({          // Registrar nuevo cliente
+  username: "usuario",
+  email: "usuario@ejemplo.com",
+  password: "password123",
+  name: "Nombre Completo"
+})
 trpc.auth.logout.mutate()            // Cerrar sesión
+
+// Pedidos
+trpc.orders.create.mutate({          // Crear pedido (registrado o invitado)
+  customerEmail: "cliente@ejemplo.com",
+  customerName: "Nombre Cliente",
+  deliveryAddress: "Dirección completa",
+  items: [...]
+})
+trpc.orders.track.useQuery({         // Seguir pedido
+  trackingNumber: "ALMA-XXXXX-YYYY"
+})
 ```
 
 ### Endpoints Protegidos (Requieren autenticación)
 ```typescript
-// Pedidos
+// Pedidos del usuario
 trpc.orders.list.useQuery()
+
+// Perfil
+trpc.profile.get.useQuery()
+trpc.profile.update.mutate({
+  name: "Nuevo Nombre",
+  phone: "+56912345678",
+  deliveryAddress: "Nueva dirección"
+})
 
 // Reservas
 trpc.reservations.list.useQuery()
@@ -235,6 +272,12 @@ trpc.reservations.list.useQuery()
 trpc.admin.products.create.mutate(data)
 trpc.admin.products.update.mutate(data)
 trpc.admin.products.delete.mutate(id)
+
+// Pedidos
+trpc.admin.orders.updateStatus.mutate({
+  orderId: 1,
+  status: "confirmed"
+})
 ```
 
 ## Scripts Disponibles

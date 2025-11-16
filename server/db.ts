@@ -8,6 +8,7 @@ import {
   categories,
   products,
   orders,
+  orderItems,
   reservations,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -476,6 +477,238 @@ export async function deleteProduct(id: number) {
     return result;
   } catch (error) {
     console.error("[Database] Failed to delete product:", error);
+    throw error;
+  }
+}
+
+// Funciones para órdenes y clientes
+
+/**
+ * Genera un número de seguimiento único para un pedido
+ */
+export function generateTrackingNumber(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `ALMA-${timestamp}-${random}`;
+}
+
+/**
+ * Crea un nuevo pedido (cliente registrado o invitado)
+ */
+export async function createOrder(orderData: {
+  userId?: number;
+  customerEmail: string;
+  customerName: string;
+  customerPhone?: string;
+  isGuest: boolean;
+  totalPrice: number;
+  deliveryAddress: string;
+  deliveryDate?: Date;
+  notes?: string;
+  items: Array<{
+    productId: number;
+    quantity: number;
+    priceAtPurchase: number;
+  }>;
+}) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    // Generar número de seguimiento único
+    const trackingNumber = generateTrackingNumber();
+
+    // Crear la orden
+    const orderResult = await db.insert(orders).values({
+      userId: orderData.userId || null,
+      trackingNumber,
+      customerEmail: orderData.customerEmail,
+      customerName: orderData.customerName,
+      customerPhone: orderData.customerPhone || null,
+      isGuest: orderData.isGuest ? 1 : 0,
+      totalPrice: orderData.totalPrice,
+      deliveryAddress: orderData.deliveryAddress,
+      deliveryDate: orderData.deliveryDate || null,
+      notes: orderData.notes || null,
+      status: "pending",
+    });
+
+    const orderId = Number(orderResult[0].insertId);
+
+    // Crear los items de la orden
+    if (orderData.items.length > 0) {
+      await db.insert(orderItems).values(
+        orderData.items.map(item => ({
+          orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          priceAtPurchase: item.priceAtPurchase,
+        }))
+      );
+    }
+
+    return { orderId, trackingNumber };
+  } catch (error) {
+    console.error("[Database] Failed to create order:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene un pedido por su número de seguimiento
+ */
+export async function getOrderByTrackingNumber(trackingNumber: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.trackingNumber, trackingNumber))
+      .limit(1);
+
+    if (result.length === 0) return null;
+
+    const order = result[0];
+    
+    // Obtener los items del pedido
+    const items = await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, order.id));
+
+    return { ...order, items };
+  } catch (error) {
+    console.error("[Database] Failed to get order by tracking number:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene todos los pedidos de un usuario
+ */
+export async function getOrdersByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const userOrders = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.userId, userId));
+
+    // Obtener items para cada orden
+    const ordersWithItems = await Promise.all(
+      userOrders.map(async (order) => {
+        const items = await db
+          .select()
+          .from(orderItems)
+          .where(eq(orderItems.orderId, order.id));
+        return { ...order, items };
+      })
+    );
+
+    return ordersWithItems;
+  } catch (error) {
+    console.error("[Database] Failed to get orders by user:", error);
+    throw error;
+  }
+}
+
+/**
+ * Actualiza el estado de un pedido
+ */
+export async function updateOrderStatus(
+  orderId: number,
+  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled"
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db
+      .update(orders)
+      .set({ status })
+      .where(eq(orders.id, orderId));
+  } catch (error) {
+    console.error("[Database] Failed to update order status:", error);
+    throw error;
+  }
+}
+
+/**
+ * Registra un nuevo cliente
+ */
+export async function registerUser(userData: {
+  username: string;
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+  deliveryAddress?: string;
+}) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db.insert(users).values({
+      username: userData.username,
+      email: userData.email,
+      password: userData.password,
+      name: userData.name,
+      phone: userData.phone || null,
+      deliveryAddress: userData.deliveryAddress || null,
+      role: "user",
+      loginMethod: "local",
+    });
+
+    const userId = Number(result[0].insertId);
+    const user = await getUserById(userId);
+    return user;
+  } catch (error) {
+    console.error("[Database] Failed to register user:", error);
+    throw error;
+  }
+}
+
+/**
+ * Actualiza el perfil de un usuario
+ */
+export async function updateUserProfile(
+  userId: number,
+  profileData: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    deliveryAddress?: string;
+  }
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db
+      .update(users)
+      .set(profileData)
+      .where(eq(users.id, userId));
+    
+    const updatedUser = await getUserById(userId);
+    return updatedUser;
+  } catch (error) {
+    console.error("[Database] Failed to update user profile:", error);
     throw error;
   }
 }

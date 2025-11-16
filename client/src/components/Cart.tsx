@@ -8,9 +8,10 @@ interface CartProps {
   products: Product[];
   onRemove: (productId: number) => void;
   onClose: () => void;
+  onCheckout: () => void;
 }
 
-export default function Cart({ items, products, onRemove, onClose }: CartProps) {
+export default function Cart({ items, products, onRemove, onClose, onCheckout }: CartProps) {
   const cartProducts = items
     .map(item => {
       const product = products.find(p => p.id === item.productId);
@@ -24,7 +25,7 @@ export default function Cart({ items, products, onRemove, onClose }: CartProps) 
   }, 0);
 
   const handleCheckout = () => {
-    toast.success("Funcionalidad de pago en desarrollo");
+    onCheckout();
   };
 
   return (
