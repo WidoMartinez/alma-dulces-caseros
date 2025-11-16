@@ -6,24 +6,43 @@ El sistema administrativo permite gestionar el catálogo de productos de manera 
 
 ## Acceso al Panel Administrativo
 
-### URL de Acceso
-```
-https://tu-dominio.com/admin
-```
+### URLs de Acceso
+- **Login**: `https://tu-dominio.com/login`
+- **Panel Admin**: `https://tu-dominio.com/admin`
 
 ### Requisitos de Acceso
-1. **Autenticación obligatoria**: Debes iniciar sesión con una cuenta válida
-2. **Rol de administrador**: Tu cuenta debe tener el rol `admin` en la base de datos
-3. **Configuración del primer admin**: El primer usuario administrador se configura mediante la variable de entorno `OWNER_OPEN_ID`
+1. **Cuenta de administrador**: Debes tener una cuenta creada con rol `admin`
+2. **Autenticación local**: Login con usuario/email y contraseña
+3. **Sin OAuth**: El sistema ya NO depende de servicios externos de autenticación
 
-### Configurar el Primer Administrador
+### Crear el Primer Administrador
 
-En el archivo `.env`, configura:
-```env
-OWNER_OPEN_ID=tu-open-id-aqui
+Usa el script `create-admin.mjs` para crear tu primer usuario administrador:
+
+```bash
+# Sintaxis
+node create-admin.mjs <username> <email> <password> [nombre]
+
+# Ejemplo
+node create-admin.mjs admin admin@alma-dulces.cl MiPassword123 "Administrador Principal"
 ```
 
-Cuando un usuario con este `openId` inicie sesión por primera vez, automáticamente se le asignará el rol de administrador.
+**Requisitos previos:**
+- Base de datos configurada y conectada
+- Variable `DATABASE_URL` en el archivo `.env`
+- Variable `JWT_SECRET` en el archivo `.env`
+
+### Iniciar Sesión
+
+1. Navega a `/login` en tu navegador
+2. Ingresa tu **username o email**
+3. Ingresa tu **contraseña**
+4. Haz clic en "Iniciar Sesión"
+5. Serás redirigido automáticamente al panel de administración
+
+### Cerrar Sesión
+
+Haz clic en el botón "Cerrar Sesión" en la esquina superior derecha del panel administrativo.
 
 ## Funcionalidades del Panel
 
@@ -67,10 +86,18 @@ Haz clic en el botón **"Nuevo Producto"** y completa el formulario:
 
 ## Seguridad
 
+### Sistema de Autenticación Local
+- ✅ **Sin dependencias externas**: No requiere OAuth ni servicios de terceros
+- ✅ **Hash seguro de contraseñas**: Bcrypt con 12 salt rounds
+- ✅ **Tokens JWT**: Sesiones firmadas con clave secreta (algoritmo HS256)
+- ✅ **Sesiones persistentes**: Duración de 1 año por defecto
+- ✅ **Rate limiting**: Máximo 5 intentos de login cada 15 minutos
+- ✅ **Protección contra fuerza bruta**: Límite de intentos por IP
+
 ### Protección de Rutas
 - La ruta `/admin` está protegida por autenticación
 - Solo usuarios con rol `admin` pueden acceder
-- Usuarios no autenticados son redirigidos al login
+- Usuarios no autenticados son redirigidos a `/login`
 - Usuarios autenticados sin rol admin ven un mensaje de "Acceso Denegado"
 
 ### Protección de API
@@ -88,9 +115,21 @@ admin: router({
 ```
 
 El middleware `adminProcedure` verifica:
-1. Que el usuario esté autenticado
+1. Que el usuario esté autenticado (token JWT válido)
 2. Que el usuario tenga rol `admin`
 3. Retorna error 403 (FORBIDDEN) si no cumple los requisitos
+
+### Variables de Entorno Necesarias
+
+```env
+# Requeridas para autenticación
+DATABASE_URL=mysql://usuario:pass@host:3306/base_datos
+JWT_SECRET=tu-secreto-jwt-muy-seguro-aqui
+
+# Opcional
+PORT=3000
+NODE_ENV=production
+```
 
 ## Arquitectura Técnica
 
@@ -215,25 +254,65 @@ MySQL Database
 ## Solución de Problemas
 
 ### No puedo acceder a /admin
-- Verifica que estés autenticado
+- Verifica que hayas iniciado sesión en `/login`
 - Verifica que tu usuario tenga rol `admin` en la base de datos
-- Revisa la configuración de `OWNER_OPEN_ID` en `.env`
+- Limpia las cookies del navegador y vuelve a iniciar sesión
+- Revisa los logs del servidor para errores de autenticación
+
+### "Credenciales inválidas" al hacer login
+- Verifica que el username/email sea correcto
+- Verifica que la contraseña sea correcta (distingue mayúsculas)
+- Asegúrate de haber creado el usuario con el script `create-admin.mjs`
+- Revisa que `JWT_SECRET` esté configurado en `.env`
+
+### "Demasiados intentos de inicio de sesión"
+- El sistema tiene protección contra fuerza bruta
+- Espera 15 minutos antes de intentar nuevamente
+- O reinicia el servidor para resetear el contador
+
+### No puedo crear el primer admin
+- Verifica que `DATABASE_URL` esté configurado correctamente
+- Verifica que la base de datos esté en ejecución
+- Asegúrate de haber ejecutado las migraciones con `npm run db:push`
+- Revisa que el username/email no exista ya en la base de datos
 
 ### Error al crear/editar producto
 - Verifica la conexión a la base de datos
 - Revisa los logs del servidor para detalles del error
 - Asegúrate de que todos los campos obligatorios estén completos
+- Verifica que el usuario tenga rol `admin`
 
 ### Error "Database not available"
 - Verifica que `DATABASE_URL` esté configurado correctamente en `.env`
 - Verifica que la base de datos MySQL esté en ejecución
 - Verifica las credenciales de conexión
+- Ejecuta `npm run db:push` para aplicar migraciones
+
+### Sesión expirada
+- Las sesiones duran 1 año por defecto
+- Si la sesión expira, simplemente vuelve a iniciar sesión
+- Limpia las cookies del navegador si tienes problemas
 
 ## Contacto y Soporte
 
 Para reportar problemas o sugerir mejoras, contacta al equipo de desarrollo.
 
+## Cambios en el Sistema de Autenticación
+
+### ⚠️ Migración desde OAuth
+
+Este sistema anteriormente usaba OAuth externo (Manus). Ahora utiliza autenticación local.
+
+**Cambios principales:**
+- ❌ Ya NO se usa `OWNER_OPEN_ID`
+- ❌ Ya NO se usa `OAUTH_SERVER_URL`
+- ❌ Ya NO se usa `VITE_APP_ID` 
+- ❌ Ya NO se usa `VITE_OAUTH_PORTAL_URL`
+- ✅ Ahora se usa `JWT_SECRET`
+- ✅ Usuarios creados localmente con username/password
+- ✅ Login en `/login` en lugar de redirección externa
+
 ---
 
 **Última actualización**: Noviembre 2024
-**Versión**: 1.0.0
+**Versión**: 2.0.0 (Sistema de autenticación renovado)

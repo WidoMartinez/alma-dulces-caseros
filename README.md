@@ -92,21 +92,21 @@ Crea un archivo `.env` en la raíz del proyecto:
 # Base de datos
 DATABASE_URL=mysql://usuario:contraseña@localhost:3306/alma_dulces
 
-# Autenticación
-JWT_SECRET=tu-secreto-jwt-aqui
-OWNER_OPEN_ID=open-id-del-primer-admin
-
-# OAuth (Manus)
-VITE_APP_ID=tu-app-id
-OAUTH_SERVER_URL=url-del-servidor-oauth
+# Autenticación (JWT)
+JWT_SECRET=tu-secreto-jwt-muy-seguro-aqui
 
 # Producción
 NODE_ENV=production
+
+# Puerto del servidor (opcional, por defecto 3000)
+PORT=3000
 
 # APIs (opcional)
 BUILT_IN_FORGE_API_URL=url-api
 BUILT_IN_FORGE_API_KEY=api-key
 ```
+
+**Nota:** El sistema ya NO requiere OAuth. La autenticación se maneja localmente con usuario/contraseña.
 
 ### Configurar Base de Datos
 
@@ -114,6 +114,17 @@ BUILT_IN_FORGE_API_KEY=api-key
 # Generar migraciones y aplicarlas
 npm run db:push
 ```
+
+### Crear Usuario Administrador
+
+Después de configurar la base de datos, crea el primer usuario administrador:
+
+```bash
+# Sintaxis: node create-admin.mjs <username> <email> <password> [nombre]
+node create-admin.mjs admin admin@alma-dulces.cl MiPassword123 "Administrador"
+```
+
+Este script creará un usuario con rol de administrador que podrá acceder al panel de administración.
 
 ### Ejecutar en Desarrollo
 
@@ -136,11 +147,19 @@ npm start
 
 ## Panel Administrativo
 
-El sistema incluye un panel administrativo completo para gestionar productos.
+El sistema incluye un panel administrativo completo para gestionar productos con autenticación local segura.
 
 ### Acceso
-- **URL**: `/admin`
-- **Requisitos**: Usuario autenticado con rol `admin`
+- **URL de Login**: `/login`
+- **URL del Panel**: `/admin`
+- **Requisitos**: Usuario con rol `admin` creado con el script `create-admin.mjs`
+
+### Sistema de Autenticación
+- 🔐 **Login Local**: Sin dependencias de OAuth externos
+- 🔑 **Contraseñas Seguras**: Hash con bcrypt (12 salt rounds)
+- 🛡️ **Protección contra Fuerza Bruta**: Rate limiting (5 intentos cada 15 minutos)
+- 🎫 **Sesiones JWT**: Tokens firmados con clave secreta
+- ⏱️ **Sesiones Persistentes**: Duración de 1 año
 
 ### Funcionalidades
 - ✅ Ver todos los productos
@@ -149,6 +168,19 @@ El sistema incluye un panel administrativo completo para gestionar productos.
 - ✅ Eliminar productos
 - ✅ Gestionar inventario
 - ✅ Asignar categorías
+
+### Primer Inicio de Sesión
+
+1. Crea un usuario administrador con el script:
+   ```bash
+   node create-admin.mjs admin admin@alma-dulces.cl MiPassword123 "Administrador"
+   ```
+
+2. Accede a `/login` en tu navegador
+
+3. Ingresa las credenciales creadas
+
+4. Serás redirigido al panel de administración en `/admin`
 
 Para más detalles, consulta la [Guía del Panel Administrativo](./docs/ADMIN.md)
 
@@ -178,6 +210,14 @@ trpc.products.getById.useQuery(id)
 
 // Categorías
 trpc.categories.list.useQuery()
+
+// Autenticación
+trpc.auth.me.useQuery()              // Obtener usuario actual
+trpc.auth.login.mutate({             // Iniciar sesión
+  usernameOrEmail: "admin",
+  password: "password123"
+})
+trpc.auth.logout.mutate()            // Cerrar sesión
 ```
 
 ### Endpoints Protegidos (Requieren autenticación)
@@ -229,12 +269,15 @@ El frontend se despliega automáticamente como activo estático junto con el bac
 
 ## Seguridad
 
-- ✅ Autenticación basada en JWT
-- ✅ Protección de rutas por rol
-- ✅ Validación de entrada con Zod
-- ✅ Sanitización de datos
-- ✅ HTTPS en producción
-- ✅ Cookies seguras (httpOnly, secure)
+- ✅ **Autenticación Local**: Sin dependencias externas de OAuth
+- ✅ **Hash de Contraseñas**: Bcrypt con 12 salt rounds
+- ✅ **Sesiones JWT**: Tokens firmados con clave secreta (HS256)
+- ✅ **Rate Limiting**: Protección contra fuerza bruta (5 intentos/15 min)
+- ✅ **Protección de Rutas por Rol**: Middleware de autorización
+- ✅ **Validación de Entrada**: Zod para validar datos
+- ✅ **Sanitización de Datos**: Prevención de inyección SQL con Drizzle ORM
+- ✅ **HTTPS en Producción**: Comunicación encriptada
+- ✅ **Cookies Seguras**: httpOnly, secure, sameSite
 
 ## Contribuir
 

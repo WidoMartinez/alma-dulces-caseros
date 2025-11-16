@@ -12,24 +12,7 @@ export const BRAND_INFO = {
   description: "Cada producto es cocinado artesanalmente con ingredientes naturales y orgánicos de la más alta calidad.",
 };
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
+// URL de login local (sin OAuth)
 export const getLoginUrl = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  
-  // Return a fallback URL if OAuth is not configured
-  if (!oauthPortalUrl || !appId) {
-    return "#";
-  }
-  
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  const state = btoa(redirectUri);
-
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
-
-  return url.toString();
+  return "/login";
 };
