@@ -9,6 +9,7 @@ Sitio web para Alma Dulces Caseros, una tienda de repostería artesanal en Temuc
 - 🛍️ **Catálogo de Productos**: Explora productos organizados por categorías
 - 🛒 **Carrito de Compras**: Agrega productos y gestiona tu pedido
 - 💳 **Checkout Completo**: Compra como usuario registrado o invitado
+- 💰 **Pagos Seguros con Flow**: Paga con Webpay, Servipag, tarjetas y más
 - 📦 **Seguimiento de Pedidos**: Rastrea tus pedidos con número único
 - 👤 **Gestión de Perfil**: Administra tu información y dirección de entrega
 - 📜 **Historial de Compras**: Accede a todos tus pedidos anteriores
@@ -39,6 +40,7 @@ Sitio web para Alma Dulces Caseros, una tienda de repostería artesanal en Temuc
 - **Drizzle ORM** - ORM TypeScript-first
 - **MySQL** - Base de datos
 - **Jose** - Autenticación JWT
+- **Flow** - Pasarela de pagos chilena
 - **PHPMailer** (externo) - Sistema de emails
 
 ### DevOps
@@ -99,6 +101,13 @@ DATABASE_URL=mysql://usuario:contraseña@localhost:3306/alma_dulces
 
 # Autenticación (JWT)
 JWT_SECRET=tu-secreto-jwt-muy-seguro-aqui
+
+# Flow - Pasarela de Pagos (ver docs/INTEGRACION_FLOW.md)
+FLOW_API_KEY=tu-api-key-de-flow
+FLOW_SECRET_KEY=tu-secret-key-de-flow
+FLOW_API_URL=https://sandbox.flow.cl/api
+FLOW_RETURN_URL=http://localhost:5000/payment/success
+FLOW_CANCEL_URL=http://localhost:5000/payment/error
 
 # Producción
 NODE_ENV=production
@@ -199,6 +208,7 @@ Para más detalles, consulta la [Guía del Panel Administrativo](./docs/ADMIN.md
 - `products` - Productos del catálogo
 - `orders` - Pedidos de clientes (registrados e invitados)
 - `orderItems` - Ítems de cada pedido
+- `paymentTransactions` - Transacciones de pago con Flow
 - `reservations` - Reservas de productos
 
 ### Roles de Usuario
@@ -246,6 +256,21 @@ trpc.orders.create.mutate({          // Crear pedido (registrado o invitado)
 })
 trpc.orders.track.useQuery({         // Seguir pedido
   trackingNumber: "ALMA-XXXXX-YYYY"
+})
+
+// Pagos con Flow
+trpc.payment.create.mutate({         // Crear orden de pago
+  orderId: 123,
+  amount: 25000,
+  customerEmail: "cliente@ejemplo.com",
+  subject: "Pedido Alma Dulces"
+})
+trpc.payment.confirm.mutate({        // Confirmar pago (webhook)
+  token: "flow-token",
+  s: "firma-flow"
+})
+trpc.payment.status.useQuery({       // Consultar estado de pago
+  token: "flow-token"
 })
 ```
 
@@ -310,6 +335,19 @@ El backend está configurado para desplegarse en Render.com. Asegúrate de:
 ### Frontend
 El frontend se despliega automáticamente como activo estático junto con el backend.
 
+## Pagos Online
+
+### Integración con Flow
+
+El sistema incluye integración completa con **Flow**, la pasarela de pagos líder en Chile:
+
+- 💳 **Múltiples métodos de pago**: Webpay, Servipag, Multicaja, tarjetas
+- 🔒 **Transacciones seguras**: Firma HMAC-SHA256 y validación de webhooks
+- 📊 **Seguimiento completo**: Registro de todas las transacciones
+- ✅ **Confirmación automática**: Webhook para actualización de estados
+
+**Documentación completa**: Ver [docs/INTEGRACION_FLOW.md](./docs/INTEGRACION_FLOW.md)
+
 ## Seguridad
 
 - ✅ **Autenticación Local**: Sin dependencias externas de OAuth
@@ -319,6 +357,7 @@ El frontend se despliega automáticamente como activo estático junto con el bac
 - ✅ **Protección de Rutas por Rol**: Middleware de autorización
 - ✅ **Validación de Entrada**: Zod para validar datos
 - ✅ **Sanitización de Datos**: Prevención de inyección SQL con Drizzle ORM
+- ✅ **Pagos Seguros**: Firma de transacciones Flow con HMAC-SHA256
 - ✅ **HTTPS en Producción**: Comunicación encriptada
 - ✅ **Cookies Seguras**: httpOnly, secure, sameSite
 

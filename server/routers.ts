@@ -25,9 +25,21 @@ import {
   updateOrderStatus,
   updateUserProfile,
   getUserById,
+  createPaymentTransaction,
+  getPaymentTransactionByToken,
+  getPaymentTransactionByCommerceOrder,
+  updatePaymentTransaction,
+  getOrderById,
 } from "./db";
 import { hashPassword } from "./_core/auth";
 import { z } from "zod";
+import {
+  createFlowPayment,
+  getFlowPaymentStatus,
+  verifyFlowSignature,
+  mapFlowStatusToOrderStatus,
+  mapFlowStatusToTransactionStatus,
+} from "./flow";
 
 export const appRouter = router({
   system: systemRouter,
@@ -381,6 +393,196 @@ export const appRouter = router({
         return { success: true };
       }),
     }),
+  }),
+
+  // Endpoints de pago con Flow
+  payment: router({
+    /**
+     * Crea una orden de pago en Flow y retorna la URL de pago
+     */
+    create: publicProcedure
+      .input(
+        z.object({
+          orderId: z.number(),
+          amount: z.number().positive(),
+          customerEmail: z.string().email(),
+          subject: z.string().min(1),
+        })
+      )
+      .mutation(async ({ input }) => {
+        console.log("[Payment] Creando orden de pago:", input);
+
+        try {
+          // Verificar que la orden existe
+          const order = await getOrderById(input.orderId);
+          if (!order) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Orden no encontrada",
+            });
+          }
+
+          // Generar ID de orden de comercio único
+          const commerceOrder = `ALMA-${order.id}-${Date.now()}`;
+
+          // Obtener URLs de entorno
+          const baseUrl = process.env.FLOW_RETURN_URL?.replace("/payment/success", "") || "http://localhost:5000";
+          const urlReturn = `${baseUrl}/payment/success`;
+          const urlConfirmation = `${baseUrl}/api/trpc/payment.confirm`;
+
+          // Crear orden de pago en Flow
+          const flowPayment = await createFlowPayment({
+            commerceOrder,
+            subject: input.subject,
+            currency: "CLP",
+            amount: input.amount,
+            email: input.customerEmail,
+            urlConfirmation,
+            urlReturn,
+          });
+
+          // Guardar transacción en base de datos
+          await createPaymentTransaction({
+            orderId: input.orderId,
+            flowToken: flowPayment.token,
+            commerceOrder,
+            flowOrder: String(flowPayment.flowOrder),
+            amount: input.amount,
+            status: "pending",
+            paymentData: JSON.stringify({
+              url: flowPayment.url,
+              createdAt: new Date().toISOString(),
+            }),
+          });
+
+          console.log("[Payment] Orden de pago creada exitosamente:", {
+            commerceOrder,
+            flowOrder: flowPayment.flowOrder,
+          });
+
+          return {
+            success: true,
+            paymentUrl: flowPayment.url,
+            token: flowPayment.token,
+            flowOrder: flowPayment.flowOrder,
+          };
+        } catch (error: any) {
+          console.error("[Payment] Error al crear orden de pago:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message || "Error al crear orden de pago",
+          });
+        }
+      }),
+
+    /**
+     * Confirma un pago recibido desde Flow (webhook)
+     */
+    confirm: publicProcedure
+      .input(
+        z.object({
+          token: z.string(),
+          s: z.string().optional(), // Firma de Flow
+        })
+      )
+      .mutation(async ({ input }) => {
+        console.log("[Payment] Confirmando pago:", input.token);
+
+        try {
+          // Verificar firma si está presente
+          if (input.s) {
+            const params = { token: input.token };
+            const isValidSignature = verifyFlowSignature(params, input.s);
+            if (!isValidSignature) {
+              console.error("[Payment] Firma inválida recibida");
+              throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Firma inválida",
+              });
+            }
+          }
+
+          // Obtener estado del pago desde Flow
+          const paymentStatus = await getFlowPaymentStatus(input.token);
+
+          // Buscar transacción en base de datos
+          const transaction = await getPaymentTransactionByToken(input.token);
+          if (!transaction) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Transacción no encontrada",
+            });
+          }
+
+          // Evitar procesar la misma transacción múltiples veces
+          if (transaction.status === "completed") {
+            console.log("[Payment] Transacción ya procesada:", transaction.id);
+            return { success: true, message: "Transacción ya procesada" };
+          }
+
+          // Actualizar transacción
+          const transactionStatus = mapFlowStatusToTransactionStatus(paymentStatus.status);
+          await updatePaymentTransaction(transaction.id, {
+            status: transactionStatus,
+            flowOrder: String(paymentStatus.flowOrder),
+            paymentMethod: paymentStatus.paymentData?.media,
+            paymentData: JSON.stringify(paymentStatus),
+          });
+
+          // Actualizar estado de la orden si el pago fue exitoso
+          if (paymentStatus.status === 2) { // Status 2 = Pagado
+            const orderStatus = mapFlowStatusToOrderStatus(paymentStatus.status);
+            await updateOrderStatus(transaction.orderId, orderStatus);
+            console.log("[Payment] Orden confirmada:", transaction.orderId);
+          } else {
+            console.log("[Payment] Pago no exitoso, estado:", paymentStatus.status);
+          }
+
+          return {
+            success: true,
+            status: transactionStatus,
+          };
+        } catch (error: any) {
+          console.error("[Payment] Error al confirmar pago:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message || "Error al confirmar pago",
+          });
+        }
+      }),
+
+    /**
+     * Obtiene el estado de un pago
+     */
+    status: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        console.log("[Payment] Consultando estado del pago:", input.token);
+
+        try {
+          const transaction = await getPaymentTransactionByToken(input.token);
+          if (!transaction) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Transacción no encontrada",
+            });
+          }
+
+          // Obtener estado actualizado desde Flow
+          const flowStatus = await getFlowPaymentStatus(input.token);
+
+          return {
+            transaction,
+            flowStatus,
+          };
+        } catch (error: any) {
+          console.error("[Payment] Error al consultar estado:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message || "Error al consultar estado del pago",
+          });
+        }
+      }),
   }),
 });
 
