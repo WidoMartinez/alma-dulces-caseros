@@ -1329,15 +1329,21 @@ export async function isDateAvailableForDispatch(date: Date): Promise<boolean> {
 
     // Verificar si el día de la semana está disponible (0=Domingo, 6=Sábado)
     const dayOfWeek = date.getDay();
+    
     if (!availableDays.includes(dayOfWeek)) {
       return false;
     }
 
     // Verificar si está dentro del rango de anticipación
+    // Normalizar ambas fechas a medianoche para comparación correcta
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    const reservationDate = new Date(date);
+    reservationDate.setHours(0, 0, 0, 0);
+    
+    const diffTime = reservationDate.getTime() - today.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (
       diffDays < settings.minAdvanceDays ||
