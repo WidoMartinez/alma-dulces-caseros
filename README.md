@@ -21,7 +21,10 @@ Sitio web para Alma Dulces Caseros, una tienda de repostería artesanal en Temuc
 - ➕ **Gestión de Productos**: CRUD completo (Crear, Leer, Actualizar, Eliminar)
 - 📊 **Visualización de Inventario**: Control de stock en tiempo real
 - 🏷️ **Gestión por Categorías**: Organiza productos eficientemente
-- 📦 **Gestión de Pedidos**: Actualiza estados de pedidos
+- 📦 **Gestión de Pedidos**: Visualiza todos los pedidos y actualiza estados
+- 📅 **Gestión de Reservas**: Administra reservas de clientes
+- ⚙️ **Configuración de Despachos**: Define días y horarios disponibles
+- 🚫 **Fechas Bloqueadas**: Gestiona días no disponibles para despacho
 
 ## Tecnologías Utilizadas
 
@@ -177,12 +180,34 @@ El sistema incluye un panel administrativo completo para gestionar productos con
 - ⏱️ **Sesiones Persistentes**: Duración de 1 año
 
 ### Funcionalidades
+
+**Gestión de Productos:**
 - ✅ Ver todos los productos
 - ✅ Crear nuevos productos
 - ✅ Editar productos existentes
 - ✅ Eliminar productos
 - ✅ Gestionar inventario
 - ✅ Asignar categorías
+
+**Gestión de Pedidos:**
+- ✅ Ver todos los pedidos (registrados e invitados)
+- ✅ Filtrar pedidos por estado
+- ✅ Buscar pedidos por tracking, cliente o email
+- ✅ Actualizar estado de pedidos
+- ✅ Ver información detallada de cada pedido
+- ✅ Estadísticas de pedidos por estado
+
+**Gestión de Reservas:**
+- ✅ Ver todas las reservas
+- ✅ Filtrar y buscar reservas
+- ✅ Actualizar estado de reservas
+- ✅ Ver detalles de cliente y producto
+
+**Configuración de Despachos:**
+- ✅ Configurar días disponibles para despacho
+- ✅ Definir horarios de despacho
+- ✅ Establecer días de anticipación mínima y máxima
+- ✅ Gestionar fechas bloqueadas (feriados, vacaciones)
 
 ### Primer Inicio de Sesión
 
@@ -300,10 +325,28 @@ trpc.admin.products.update.mutate(data)
 trpc.admin.products.delete.mutate(id)
 
 // Pedidos
+trpc.admin.orders.list.useQuery()        // Listar todos los pedidos
 trpc.admin.orders.updateStatus.mutate({
   orderId: 1,
   status: "confirmed"
 })
+
+// Reservas
+trpc.admin.reservations.list.useQuery()  // Listar todas las reservas
+trpc.admin.reservations.updateStatus.mutate({
+  reservationId: 1,
+  status: "confirmed"
+})
+
+// Configuración de Despachos
+trpc.admin.dispatchSettings.get.useQuery()
+trpc.admin.dispatchSettings.update.mutate(data)
+trpc.admin.dispatchSettings.getBlockedDates.useQuery()
+trpc.admin.dispatchSettings.addBlockedDate.mutate({
+  date: "2025-12-25",
+  reason: "Navidad"
+})
+trpc.admin.dispatchSettings.removeBlockedDate.mutate(dateId)
 ```
 
 ## Scripts Disponibles
