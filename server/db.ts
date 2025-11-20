@@ -1,4 +1,4 @@
-import { eq, or } from "drizzle-orm";
+import { eq, or, and, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -1105,13 +1105,20 @@ export async function addBlockedDate(
   }
 
   try {
-    // Asegurar que la fecha sea un objeto Date válido
+    // Asegurar que la fecha sea un objeto Date válido y normalizada a medianoche
+    let dateObj: Date;
+    if (dateData.date instanceof Date) {
+      dateObj = dateData.date;
+    } else {
+      dateObj = new Date(dateData.date as string);
+    }
+    
+    // Normalizar la fecha a medianoche (00:00:00) para consistencia
+    dateObj.setHours(0, 0, 0, 0);
+    
     const dateToInsert = {
       ...dateData,
-      date:
-        dateData.date instanceof Date
-          ? dateData.date
-          : new Date(dateData.date as string),
+      date: dateObj,
     };
 
     console.log("[Database] Insertando fecha bloqueada:", dateToInsert);
@@ -1169,15 +1176,22 @@ export async function isDateAvailableForDispatch(date: Date): Promise<boolean> {
 
   try {
     // Verificar si la fecha está en las fechas bloqueadas
+    // Normalizar la fecha a medianoche
     const dateStart = new Date(date);
     dateStart.setHours(0, 0, 0, 0);
     const dateEnd = new Date(date);
     dateEnd.setHours(23, 59, 59, 999);
 
+    // Buscar fechas bloqueadas en el rango del día completo
     const blockedDate = await db
       .select()
       .from(blockedDates)
-      .where(eq(blockedDates.date, dateStart))
+      .where(
+        and(
+          gte(blockedDates.date, dateStart),
+          lte(blockedDates.date, dateEnd)
+        )
+      )
       .limit(1);
 
     if (blockedDate.length > 0) {
