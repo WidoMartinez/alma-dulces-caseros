@@ -354,14 +354,18 @@ export const appRouter = router({
     create: protectedProcedure
       .input(
         z.object({
-          productId: z.number(),
-          quantity: z.number().min(1, "La cantidad debe ser al menos 1"),
+          items: z.array(
+            z.object({
+              productId: z.number(),
+              quantity: z.number().min(1, "La cantidad debe ser al menos 1"),
+            })
+          ).min(1, "Debes agregar al menos un producto"),
           reservedDate: z.string(), // ISO date string
           notes: z.string().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
-        console.log("[Reservations] Creando nueva reserva");
+        console.log("[Reservations] Creando nueva reserva con", input.items.length, "items");
 
         try {
           // Convertir la fecha string a Date
@@ -374,8 +378,7 @@ export const appRouter = router({
 
           const reservation = await createReservation({
             userId: ctx.user.id,
-            productId: input.productId,
-            quantity: input.quantity,
+            items: input.items,
             reservedDate,
             notes: input.notes,
           });

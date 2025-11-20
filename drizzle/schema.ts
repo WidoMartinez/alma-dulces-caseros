@@ -101,8 +101,6 @@ export type InsertOrderItem = typeof orderItems.$inferInsert;
 export const reservations = mysqlTable("reservations", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  productId: int("productId").notNull(),
-  quantity: int("quantity").notNull(),
   reservedDate: timestamp("reservedDate").notNull(),
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed"]).default("pending").notNull(),
   notes: text("notes"),
@@ -112,6 +110,16 @@ export const reservations = mysqlTable("reservations", {
 
 export type Reservation = typeof reservations.$inferSelect;
 export type InsertReservation = typeof reservations.$inferInsert;
+
+export const reservationItems = mysqlTable("reservationItems", {
+  id: int("id").autoincrement().primaryKey(),
+  reservationId: int("reservationId").notNull(),
+  productId: int("productId").notNull(),
+  quantity: int("quantity").notNull(),
+});
+
+export type ReservationItem = typeof reservationItems.$inferSelect;
+export type InsertReservationItem = typeof reservationItems.$inferInsert;
 
 /**
  * Tabla de transacciones de pago con Flow

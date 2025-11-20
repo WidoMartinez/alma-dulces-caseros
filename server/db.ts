@@ -10,6 +10,7 @@ import {
   orders,
   orderItems,
   reservations,
+  reservationItems,
   paymentTransactions,
   InsertPaymentTransaction,
   PaymentTransaction,
@@ -429,16 +430,53 @@ export async function getUserOrders(userId: number) {
 export async function getUserReservations(userId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(reservations).where(eq(reservations.userId, userId));
+  
+  // Obtener las reservas del usuario
+  const userReservations = await db.select().from(reservations).where(eq(reservations.userId, userId));
+  
+  // Para cada reserva, obtener sus items con información del producto
+  const reservationsWithItems = await Promise.all(
+    userReservations.map(async (reservation) => {
+      const items = await db
+        .select()
+        .from(reservationItems)
+        .where(eq(reservationItems.reservationId, reservation.id));
+      
+      // Obtener información de cada producto
+      const itemsWithProducts = await Promise.all(
+        items.map(async (item) => {
+          const product = await getProductById(item.productId);
+          return {
+            ...item,
+            product: product ? {
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              imageUrl: product.imageUrl,
+            } : null,
+          };
+        })
+      );
+      
+      return {
+        ...reservation,
+        items: itemsWithProducts,
+      };
+    })
+  );
+  
+  return reservationsWithItems;
 }
 
 /**
- * Crea una nueva reserva
+ * Crea una nueva reserva con múltiples items
  */
 export async function createReservation(reservationData: {
   userId: number;
-  productId: number;
-  quantity: number;
+  items: Array<{
+    productId: number;
+    quantity: number;
+  }>;
   reservedDate: Date;
   notes?: string;
 }) {
@@ -454,11 +492,14 @@ export async function createReservation(reservationData: {
       throw new Error("La fecha seleccionada no está disponible para reservas");
     }
 
-    // Crear la reserva
+    // Validar que haya al menos un item
+    if (!reservationData.items || reservationData.items.length === 0) {
+      throw new Error("Debes agregar al menos un producto a la reserva");
+    }
+
+    // Crear la reserva principal
     const result = await db.insert(reservations).values({
       userId: reservationData.userId,
-      productId: reservationData.productId,
-      quantity: reservationData.quantity,
       reservedDate: reservationData.reservedDate,
       notes: reservationData.notes || null,
       status: "pending",
@@ -466,7 +507,16 @@ export async function createReservation(reservationData: {
 
     const reservationId = Number(result[0].insertId);
     
-    // Obtener la reserva creada con información del usuario y producto
+    // Insertar los items de la reserva
+    const itemsToInsert = reservationData.items.map(item => ({
+      reservationId,
+      productId: item.productId,
+      quantity: item.quantity,
+    }));
+
+    await db.insert(reservationItems).values(itemsToInsert);
+
+    // Obtener la reserva creada con sus items
     const createdReservation = await db
       .select()
       .from(reservations)
@@ -986,7 +1036,7 @@ export async function getOrderById(orderId: number) {
 // Funciones para gestión de reservas
 
 /**
- * Obtiene todas las reservas con información del usuario y producto
+ * Obtiene todas las reservas con información del usuario y sus items
  */
 export async function getAllReservations() {
   const db = await getDb();
@@ -998,11 +1048,32 @@ export async function getAllReservations() {
     // Obtener todas las reservas
     const allReservations = await db.select().from(reservations);
 
-    // Para cada reserva, obtener información del usuario y producto
+    // Para cada reserva, obtener información del usuario y sus items
     const reservationsWithDetails = await Promise.all(
       allReservations.map(async reservation => {
         const user = await getUserById(reservation.userId);
-        const product = await getProductById(reservation.productId);
+        
+        // Obtener items de la reserva
+        const items = await db
+          .select()
+          .from(reservationItems)
+          .where(eq(reservationItems.reservationId, reservation.id));
+        
+        // Obtener información de cada producto
+        const itemsWithProducts = await Promise.all(
+          items.map(async (item) => {
+            const product = await getProductById(item.productId);
+            return {
+              ...item,
+              product: product ? {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                imageUrl: product.imageUrl,
+              } : null,
+            };
+          })
+        );
 
         return {
           ...reservation,
@@ -1014,13 +1085,7 @@ export async function getAllReservations() {
                 phone: user.phone,
               }
             : null,
-          product: product
-            ? {
-                id: product.id,
-                name: product.name,
-                price: product.price,
-              }
-            : null,
+          items: itemsWithProducts,
         };
       })
     );
