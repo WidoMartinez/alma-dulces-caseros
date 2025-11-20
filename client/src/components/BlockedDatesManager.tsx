@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,30 +42,33 @@ export default function BlockedDatesManager() {
   const [newReason, setNewReason] = useState("");
 
   const utils = trpc.useUtils();
-  const { data: blockedDates = [], isLoading } = trpc.admin.dispatchSettings.getBlockedDates.useQuery();
+  const { data: blockedDates = [], isLoading } =
+    trpc.admin.dispatchSettings.getBlockedDates.useQuery();
 
-  const addBlockedDateMutation = trpc.admin.dispatchSettings.addBlockedDate.useMutation({
-    onSuccess: () => {
-      toast.success("Fecha bloqueada agregada exitosamente");
-      utils.admin.dispatchSettings.getBlockedDates.invalidate();
-      closeAddDialog();
-    },
-    onError: (error) => {
-      toast.error("Error al agregar fecha bloqueada: " + error.message);
-    },
-  });
+  const addBlockedDateMutation =
+    trpc.admin.dispatchSettings.addBlockedDate.useMutation({
+      onSuccess: () => {
+        toast.success("Fecha bloqueada agregada exitosamente");
+        utils.admin.dispatchSettings.getBlockedDates.invalidate();
+        closeAddDialog();
+      },
+      onError: error => {
+        toast.error("Error al agregar fecha bloqueada: " + error.message);
+      },
+    });
 
-  const removeBlockedDateMutation = trpc.admin.dispatchSettings.removeBlockedDate.useMutation({
-    onSuccess: () => {
-      toast.success("Fecha bloqueada eliminada exitosamente");
-      utils.admin.dispatchSettings.getBlockedDates.invalidate();
-      setIsDeleteDialogOpen(false);
-      setDeletingDateId(null);
-    },
-    onError: (error) => {
-      toast.error("Error al eliminar fecha bloqueada: " + error.message);
-    },
-  });
+  const removeBlockedDateMutation =
+    trpc.admin.dispatchSettings.removeBlockedDate.useMutation({
+      onSuccess: () => {
+        toast.success("Fecha bloqueada eliminada exitosamente");
+        utils.admin.dispatchSettings.getBlockedDates.invalidate();
+        setIsDeleteDialogOpen(false);
+        setDeletingDateId(null);
+      },
+      onError: error => {
+        toast.error("Error al eliminar fecha bloqueada: " + error.message);
+      },
+    });
 
   const openAddDialog = () => {
     setNewDate("");
@@ -130,7 +139,8 @@ export default function BlockedDatesManager() {
           <div>
             <CardTitle>Fechas Bloqueadas</CardTitle>
             <CardDescription>
-              Gestiona fechas no disponibles para despacho (feriados, vacaciones, etc.)
+              Gestiona fechas no disponibles para despacho (feriados,
+              vacaciones, etc.)
             </CardDescription>
           </div>
           <Button onClick={openAddDialog}>
@@ -146,7 +156,9 @@ export default function BlockedDatesManager() {
           <div className="text-center py-8 text-muted-foreground">
             <CalendarOff className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>No hay fechas bloqueadas registradas.</p>
-            <p className="text-sm mt-1">Agrega fechas que no estarán disponibles para despachos.</p>
+            <p className="text-sm mt-1">
+              Agrega fechas que no estarán disponibles para despachos.
+            </p>
           </div>
         ) : (
           <div className="rounded-md border">
@@ -160,21 +172,28 @@ export default function BlockedDatesManager() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedBlockedDates.map((blockedDate) => {
+                {sortedBlockedDates.map(blockedDate => {
                   const dateObj = new Date(blockedDate.date);
                   const isPast = dateObj < new Date();
-                  
+
                   return (
-                    <TableRow key={blockedDate.id} className={isPast ? "opacity-50" : ""}>
+                    <TableRow
+                      key={blockedDate.id}
+                      className={isPast ? "opacity-50" : ""}
+                    >
                       <TableCell className="font-medium">
                         {format(dateObj, "PPP", { locale: es })}
                         {isPast && (
-                          <span className="ml-2 text-xs text-muted-foreground">(Pasada)</span>
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            (Pasada)
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>{blockedDate.reason}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {format(new Date(blockedDate.createdAt), "PPp", { locale: es })}
+                        {format(new Date(blockedDate.createdAt), "PPp", {
+                          locale: es,
+                        })}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -201,7 +220,8 @@ export default function BlockedDatesManager() {
           <DialogHeader>
             <DialogTitle>Agregar Fecha Bloqueada</DialogTitle>
             <DialogDescription>
-              Bloquea una fecha específica para que no esté disponible para despachos.
+              Bloquea una fecha específica para que no esté disponible para
+              despachos.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddBlockedDate}>
@@ -212,7 +232,7 @@ export default function BlockedDatesManager() {
                   id="blocked-date"
                   type="date"
                   value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
+                  onChange={e => setNewDate(e.target.value)}
                   required
                 />
               </div>
@@ -222,7 +242,7 @@ export default function BlockedDatesManager() {
                   id="reason"
                   placeholder="Ej: Feriado Nacional, Vacaciones"
                   value={newReason}
-                  onChange={(e) => setNewReason(e.target.value)}
+                  onChange={e => setNewReason(e.target.value)}
                   maxLength={255}
                   required
                 />
@@ -232,17 +252,10 @@ export default function BlockedDatesManager() {
               </div>
             </div>
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeAddDialog}
-              >
+              <Button type="button" variant="outline" onClick={closeAddDialog}>
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                disabled={addBlockedDateMutation.isPending}
-              >
+              <Button type="submit" disabled={addBlockedDateMutation.isPending}>
                 Agregar Fecha
               </Button>
             </DialogFooter>
@@ -256,7 +269,8 @@ export default function BlockedDatesManager() {
           <DialogHeader>
             <DialogTitle>Confirmar Eliminación</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que deseas eliminar esta fecha bloqueada? Esta acción no se puede deshacer.
+              ¿Estás seguro de que deseas eliminar esta fecha bloqueada? Esta
+              acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

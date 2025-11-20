@@ -137,11 +137,7 @@ export async function getUserById(id: number): Promise<User | undefined> {
     return undefined;
   }
 
-  const result = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, id))
-    .limit(1);
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -162,10 +158,7 @@ export async function getUserByUsernameOrEmail(
     .select()
     .from(users)
     .where(
-      or(
-        eq(users.username, usernameOrEmail),
-        eq(users.email, usernameOrEmail)
-      )
+      or(eq(users.username, usernameOrEmail), eq(users.email, usernameOrEmail))
     )
     .limit(1);
 
@@ -445,7 +438,7 @@ export async function createProduct(product: InsertProduct) {
   if (!db) {
     throw new Error("Database not available");
   }
-  
+
   try {
     const result = await db.insert(products).values(product);
     return result;
@@ -455,12 +448,15 @@ export async function createProduct(product: InsertProduct) {
   }
 }
 
-export async function updateProduct(id: number, product: Partial<InsertProduct>) {
+export async function updateProduct(
+  id: number,
+  product: Partial<InsertProduct>
+) {
   const db = await getDb();
   if (!db) {
     throw new Error("Database not available");
   }
-  
+
   try {
     const result = await db
       .update(products)
@@ -478,11 +474,9 @@ export async function deleteProduct(id: number) {
   if (!db) {
     throw new Error("Database not available");
   }
-  
+
   try {
-    const result = await db
-      .delete(products)
-      .where(eq(products.id, id));
+    const result = await db.delete(products).where(eq(products.id, id));
     return result;
   } catch (error) {
     console.error("[Database] Failed to delete product:", error);
@@ -584,7 +578,7 @@ export async function getOrderByTrackingNumber(trackingNumber: string) {
     if (result.length === 0) return null;
 
     const order = result[0];
-    
+
     // Obtener los items del pedido
     const items = await db
       .select()
@@ -615,7 +609,7 @@ export async function getOrdersByUserId(userId: number) {
 
     // Obtener items para cada orden
     const ordersWithItems = await Promise.all(
-      userOrders.map(async (order) => {
+      userOrders.map(async order => {
         const items = await db
           .select()
           .from(orderItems)
@@ -644,10 +638,7 @@ export async function updateOrderStatus(
   }
 
   try {
-    await db
-      .update(orders)
-      .set({ status })
-      .where(eq(orders.id, orderId));
+    await db.update(orders).set({ status }).where(eq(orders.id, orderId));
   } catch (error) {
     console.error("[Database] Failed to update order status:", error);
     throw error;
@@ -709,11 +700,8 @@ export async function updateUserProfile(
   }
 
   try {
-    await db
-      .update(users)
-      .set(profileData)
-      .where(eq(users.id, userId));
-    
+    await db.update(users).set(profileData).where(eq(users.id, userId));
+
     const updatedUser = await getUserById(userId);
     return updatedUser;
   } catch (error) {
@@ -738,17 +726,17 @@ export async function createPaymentTransaction(
   try {
     const result = await db.insert(paymentTransactions).values(transactionData);
     const transactionId = Number(result[0].insertId);
-    
+
     const transaction = await db
       .select()
       .from(paymentTransactions)
       .where(eq(paymentTransactions.id, transactionId))
       .limit(1);
-    
+
     if (transaction.length === 0) {
       throw new Error("Failed to retrieve created transaction");
     }
-    
+
     return transaction[0];
   } catch (error) {
     console.error("[Database] Failed to create payment transaction:", error);
@@ -773,10 +761,13 @@ export async function getPaymentTransactionByToken(
       .from(paymentTransactions)
       .where(eq(paymentTransactions.flowToken, flowToken))
       .limit(1);
-    
+
     return result.length > 0 ? result[0] : null;
   } catch (error) {
-    console.error("[Database] Failed to get payment transaction by token:", error);
+    console.error(
+      "[Database] Failed to get payment transaction by token:",
+      error
+    );
     throw error;
   }
 }
@@ -798,10 +789,13 @@ export async function getPaymentTransactionByCommerceOrder(
       .from(paymentTransactions)
       .where(eq(paymentTransactions.commerceOrder, commerceOrder))
       .limit(1);
-    
+
     return result.length > 0 ? result[0] : null;
   } catch (error) {
-    console.error("[Database] Failed to get payment transaction by commerce order:", error);
+    console.error(
+      "[Database] Failed to get payment transaction by commerce order:",
+      error
+    );
     throw error;
   }
 }
@@ -822,10 +816,13 @@ export async function getPaymentTransactionsByOrderId(
       .select()
       .from(paymentTransactions)
       .where(eq(paymentTransactions.orderId, orderId));
-    
+
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get payment transactions by order:", error);
+    console.error(
+      "[Database] Failed to get payment transactions by order:",
+      error
+    );
     throw error;
   }
 }
@@ -868,17 +865,17 @@ export async function getOrderById(orderId: number) {
       .from(orders)
       .where(eq(orders.id, orderId))
       .limit(1);
-    
+
     if (result.length === 0) return null;
-    
+
     const order = result[0];
-    
+
     // Obtener los items del pedido
     const items = await db
       .select()
       .from(orderItems)
       .where(eq(orderItems.orderId, order.id));
-    
+
     return { ...order, items };
   } catch (error) {
     console.error("[Database] Failed to get order by id:", error);
@@ -899,29 +896,31 @@ export async function getAllReservations() {
 
   try {
     // Obtener todas las reservas
-    const allReservations = await db
-      .select()
-      .from(reservations);
+    const allReservations = await db.select().from(reservations);
 
     // Para cada reserva, obtener información del usuario y producto
     const reservationsWithDetails = await Promise.all(
-      allReservations.map(async (reservation) => {
+      allReservations.map(async reservation => {
         const user = await getUserById(reservation.userId);
         const product = await getProductById(reservation.productId);
-        
+
         return {
           ...reservation,
-          user: user ? {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-          } : null,
-          product: product ? {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-          } : null,
+          user: user
+            ? {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+              }
+            : null,
+          product: product
+            ? {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+              }
+            : null,
         };
       })
     );
@@ -969,11 +968,8 @@ export async function getDispatchSettings(): Promise<DispatchSettings> {
   }
 
   try {
-    const result = await db
-      .select()
-      .from(dispatchSettings)
-      .limit(1);
-    
+    const result = await db.select().from(dispatchSettings).limit(1);
+
     // Si no existe configuración, crear una por defecto
     if (result.length === 0) {
       const defaultSettings: InsertDispatchSettings = {
@@ -983,19 +979,21 @@ export async function getDispatchSettings(): Promise<DispatchSettings> {
         minAdvanceDays: 1,
         maxAdvanceDays: 30,
       };
-      
-      const insertResult = await db.insert(dispatchSettings).values(defaultSettings);
+
+      const insertResult = await db
+        .insert(dispatchSettings)
+        .values(defaultSettings);
       const settingsId = Number(insertResult[0].insertId);
-      
+
       const newSettings = await db
         .select()
         .from(dispatchSettings)
         .where(eq(dispatchSettings.id, settingsId))
         .limit(1);
-      
+
       return newSettings[0];
     }
-    
+
     return result[0];
   } catch (error) {
     console.error("[Database] Failed to get dispatch settings:", error);
@@ -1017,12 +1015,12 @@ export async function updateDispatchSettings(
   try {
     // Obtener la configuración actual para obtener el ID
     const current = await getDispatchSettings();
-    
+
     await db
       .update(dispatchSettings)
       .set(settingsData)
       .where(eq(dispatchSettings.id, current.id));
-    
+
     return getDispatchSettings();
   } catch (error) {
     console.error("[Database] Failed to update dispatch settings:", error);
@@ -1064,26 +1062,29 @@ export async function addBlockedDate(
     // Asegurar que la fecha sea un objeto Date válido
     const dateToInsert = {
       ...dateData,
-      date: dateData.date instanceof Date 
-        ? dateData.date 
-        : new Date(dateData.date as string)
+      date:
+        dateData.date instanceof Date
+          ? dateData.date
+          : new Date(dateData.date as string),
     };
 
     console.log("[Database] Insertando fecha bloqueada:", dateToInsert);
-    
+
     const result = await db.insert(blockedDates).values(dateToInsert);
     const dateId = Number(result[0].insertId);
-    
+
     const blockedDate = await db
       .select()
       .from(blockedDates)
       .where(eq(blockedDates.id, dateId))
       .limit(1);
-    
+
     if (!blockedDate || blockedDate.length === 0) {
-      throw new Error("No se pudo recuperar la fecha bloqueada después de insertarla");
+      throw new Error(
+        "No se pudo recuperar la fecha bloqueada después de insertarla"
+      );
     }
-    
+
     return blockedDate[0];
   } catch (error) {
     console.error("[Database] Failed to add blocked date:", error);
@@ -1126,37 +1127,40 @@ export async function isDateAvailableForDispatch(date: Date): Promise<boolean> {
     dateStart.setHours(0, 0, 0, 0);
     const dateEnd = new Date(date);
     dateEnd.setHours(23, 59, 59, 999);
-    
+
     const blockedDate = await db
       .select()
       .from(blockedDates)
       .where(eq(blockedDates.date, dateStart))
       .limit(1);
-    
+
     if (blockedDate.length > 0) {
       return false;
     }
-    
+
     // Obtener configuración de despachos
     const settings = await getDispatchSettings();
     const availableDays = JSON.parse(settings.availableDays) as number[];
-    
+
     // Verificar si el día de la semana está disponible (0=Domingo, 6=Sábado)
     const dayOfWeek = date.getDay();
     if (!availableDays.includes(dayOfWeek)) {
       return false;
     }
-    
+
     // Verificar si está dentro del rango de anticipación
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diffTime = date.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < settings.minAdvanceDays || diffDays > settings.maxAdvanceDays) {
+
+    if (
+      diffDays < settings.minAdvanceDays ||
+      diffDays > settings.maxAdvanceDays
+    ) {
       return false;
     }
-    
+
     return true;
   } catch (error) {
     console.error("[Database] Failed to check date availability:", error);

@@ -130,9 +130,14 @@ export const appRouter = router({
     register: publicProcedure
       .input(
         z.object({
-          username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres").max(64),
+          username: z
+            .string()
+            .min(3, "El nombre de usuario debe tener al menos 3 caracteres")
+            .max(64),
           email: z.string().email("Email inválido").max(320),
-          password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+          password: z
+            .string()
+            .min(6, "La contraseña debe tener al menos 6 caracteres"),
           name: z.string().min(1, "El nombre es requerido"),
           phone: z.string().optional(),
           deliveryAddress: z.string().optional(),
@@ -150,23 +155,29 @@ export const appRouter = router({
             password: passwordHash,
           });
 
-          console.log("[Auth] Usuario registrado exitosamente:", user?.username);
+          console.log(
+            "[Auth] Usuario registrado exitosamente:",
+            user?.username
+          );
 
           return {
             success: true,
-            user: user ? {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              name: user.name,
-              role: user.role,
-            } : null,
+            user: user
+              ? {
+                  id: user.id,
+                  username: user.username,
+                  email: user.email,
+                  name: user.name,
+                  role: user.role,
+                }
+              : null,
           };
         } catch (error) {
           console.error("[Auth] Error al registrar usuario:", error);
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Error al registrar usuario. El nombre de usuario o email ya existe.",
+            message:
+              "Error al registrar usuario. El nombre de usuario o email ya existe.",
           });
         }
       }),
@@ -194,16 +205,20 @@ export const appRouter = router({
           customerEmail: z.string().email("Email inválido"),
           customerName: z.string().min(1, "El nombre es requerido"),
           customerPhone: z.string().optional(),
-          deliveryAddress: z.string().min(10, "La dirección debe tener al menos 10 caracteres"),
+          deliveryAddress: z
+            .string()
+            .min(10, "La dirección debe tener al menos 10 caracteres"),
           deliveryDate: z.string().optional(),
           notes: z.string().optional(),
-          items: z.array(
-            z.object({
-              productId: z.number(),
-              quantity: z.number().min(1),
-              priceAtPurchase: z.number(),
-            })
-          ).min(1, "Debe haber al menos un producto en el pedido"),
+          items: z
+            .array(
+              z.object({
+                productId: z.number(),
+                quantity: z.number().min(1),
+                priceAtPurchase: z.number(),
+              })
+            )
+            .min(1, "Debe haber al menos un producto en el pedido"),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -228,7 +243,9 @@ export const appRouter = router({
             isGuest,
             totalPrice,
             deliveryAddress: input.deliveryAddress,
-            deliveryDate: input.deliveryDate ? new Date(input.deliveryDate) : undefined,
+            deliveryDate: input.deliveryDate
+              ? new Date(input.deliveryDate)
+              : undefined,
             notes: input.notes,
             items: input.items,
           });
@@ -251,9 +268,11 @@ export const appRouter = router({
 
     // Consultar pedido por número de seguimiento (público)
     track: publicProcedure
-      .input(z.object({
-        trackingNumber: z.string().min(1, "Número de seguimiento requerido"),
-      }))
+      .input(
+        z.object({
+          trackingNumber: z.string().min(1, "Número de seguimiento requerido"),
+        })
+      )
       .query(async ({ input }) => {
         console.log("[Orders] Consultando pedido:", input.trackingNumber);
 
@@ -338,7 +357,13 @@ export const appRouter = router({
         .input(
           z.object({
             orderId: z.number(),
-            status: z.enum(["pending", "confirmed", "shipped", "delivered", "cancelled"]),
+            status: z.enum([
+              "pending",
+              "confirmed",
+              "shipped",
+              "delivered",
+              "cancelled",
+            ]),
           })
         )
         .mutation(async ({ input }) => {
@@ -425,12 +450,18 @@ export const appRouter = router({
           })
         )
         .mutation(async ({ input }) => {
-          console.log("[Admin] Actualizando estado de reserva:", input.reservationId);
+          console.log(
+            "[Admin] Actualizando estado de reserva:",
+            input.reservationId
+          );
           try {
             await updateReservationStatus(input.reservationId, input.status);
             return { success: true };
           } catch (error) {
-            console.error("[Admin] Error al actualizar estado de reserva:", error);
+            console.error(
+              "[Admin] Error al actualizar estado de reserva:",
+              error
+            );
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
               message: "Error al actualizar el estado de la reserva",
@@ -458,8 +489,14 @@ export const appRouter = router({
         .input(
           z.object({
             availableDays: z.string().optional(), // JSON array de días
-            startTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-            endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+            startTime: z
+              .string()
+              .regex(/^\d{2}:\d{2}$/)
+              .optional(),
+            endTime: z
+              .string()
+              .regex(/^\d{2}:\d{2}$/)
+              .optional(),
             minAdvanceDays: z.number().min(0).optional(),
             maxAdvanceDays: z.number().min(1).optional(),
           })
@@ -502,7 +539,7 @@ export const appRouter = router({
           try {
             // Convertir la fecha string a Date y asegurarse de que sea válida
             const dateObj = new Date(input.date);
-            
+
             // Validar que la fecha sea válida
             if (isNaN(dateObj.getTime())) {
               throw new TRPCError({
@@ -512,12 +549,12 @@ export const appRouter = router({
             }
 
             console.log("[Admin] Fecha convertida:", dateObj);
-            
+
             const blockedDate = await addBlockedDate({
               date: dateObj,
               reason: input.reason,
             });
-            
+
             console.log("[Admin] Fecha bloqueada agregada:", blockedDate);
             return { success: true, blockedDate };
           } catch (error) {
@@ -529,7 +566,10 @@ export const appRouter = router({
             // De lo contrario, envolver el error
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
-              message: error instanceof Error ? error.message : "Error al agregar la fecha bloqueada",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Error al agregar la fecha bloqueada",
             });
           }
         }),
@@ -555,11 +595,16 @@ export const appRouter = router({
   // Endpoint público para validar disponibilidad de fechas
   dispatch: router({
     checkAvailability: publicProcedure
-      .input(z.object({
-        date: z.string(), // ISO date string
-      }))
+      .input(
+        z.object({
+          date: z.string(), // ISO date string
+        })
+      )
       .query(async ({ input }) => {
-        console.log("[Dispatch] Verificando disponibilidad de fecha:", input.date);
+        console.log(
+          "[Dispatch] Verificando disponibilidad de fecha:",
+          input.date
+        );
         try {
           const date = new Date(input.date);
           const isAvailable = await isDateAvailableForDispatch(date);
@@ -607,8 +652,7 @@ export const appRouter = router({
           // Obtener URLs de entorno
           const defaultBaseUrl = "http://localhost:5000";
           const urlReturn =
-            process.env.FLOW_RETURN_URL ||
-            `${defaultBaseUrl}/payment/success`;
+            process.env.FLOW_RETURN_URL || `${defaultBaseUrl}/payment/success`;
           const urlConfirmation =
             process.env.FLOW_CONFIRMATION_URL ||
             `${defaultBaseUrl}/api/flow/webhook`;
@@ -704,7 +748,9 @@ export const appRouter = router({
           }
 
           // Actualizar transacción
-          const transactionStatus = mapFlowStatusToTransactionStatus(paymentStatus.status);
+          const transactionStatus = mapFlowStatusToTransactionStatus(
+            paymentStatus.status
+          );
           await updatePaymentTransaction(transaction.id, {
             status: transactionStatus,
             flowOrder: String(paymentStatus.flowOrder),
@@ -713,12 +759,18 @@ export const appRouter = router({
           });
 
           // Actualizar estado de la orden si el pago fue exitoso
-          if (paymentStatus.status === 2) { // Status 2 = Pagado
-            const orderStatus = mapFlowStatusToOrderStatus(paymentStatus.status);
+          if (paymentStatus.status === 2) {
+            // Status 2 = Pagado
+            const orderStatus = mapFlowStatusToOrderStatus(
+              paymentStatus.status
+            );
             await updateOrderStatus(transaction.orderId, orderStatus);
             console.log("[Payment] Orden confirmada:", transaction.orderId);
           } else {
-            console.log("[Payment] Pago no exitoso, estado:", paymentStatus.status);
+            console.log(
+              "[Payment] Pago no exitoso, estado:",
+              paymentStatus.status
+            );
           }
 
           return {
