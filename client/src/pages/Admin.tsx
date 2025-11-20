@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,9 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Package, LogOut, Home } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, LogOut, Home, Calendar, Settings } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, Category } from "@shared/types";
+import ReservationsManagement from "@/components/ReservationsManagement";
+import DispatchSettings from "@/components/DispatchSettings";
+import BlockedDatesManager from "@/components/BlockedDatesManager";
 
 type ProductFormData = {
   id?: number;
@@ -223,75 +227,114 @@ export default function Admin() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Gestión de Productos</CardTitle>
-                <CardDescription>
-                  Administra el catálogo de productos de Alma Dulces Caseros
-                </CardDescription>
-              </div>
-              <Button onClick={openCreateDialog}>
-                <Plus className="mr-2 h-4 w-4" />
-                Nuevo Producto
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">Cargando productos...</div>
-            ) : products.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No hay productos registrados. Crea uno para comenzar.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Precio</TableHead>
-                    <TableHead>Disponibles</TableHead>
-                    <TableHead>Orgánico</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>{product.id}</TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{getCategoryName(product.categoryId)}</TableCell>
-                      <TableCell>{formatPrice(product.price)}</TableCell>
-                      <TableCell>{product.available}</TableCell>
-                      <TableCell>{product.organic ? "Sí" : "No"}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditDialog(product)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openDeleteDialog(product.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="products" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              <span className="hidden sm:inline">Productos</span>
+            </TabsTrigger>
+            <TabsTrigger value="reservations" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Reservas</span>
+            </TabsTrigger>
+            <TabsTrigger value="dispatch" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Despachos</span>
+            </TabsTrigger>
+            <TabsTrigger value="blocked-dates" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Fechas Bloqueadas</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab de Productos */}
+          <TabsContent value="products">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Gestión de Productos</CardTitle>
+                    <CardDescription>
+                      Administra el catálogo de productos de Alma Dulces Caseros
+                    </CardDescription>
+                  </div>
+                  <Button onClick={openCreateDialog}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nuevo Producto
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="text-center py-8">Cargando productos...</div>
+                ) : products.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No hay productos registrados. Crea uno para comenzar.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Nombre</TableHead>
+                        <TableHead>Categoría</TableHead>
+                        <TableHead>Precio</TableHead>
+                        <TableHead>Disponibles</TableHead>
+                        <TableHead>Orgánico</TableHead>
+                        <TableHead className="text-right">Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell>{product.id}</TableCell>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>{getCategoryName(product.categoryId)}</TableCell>
+                          <TableCell>{formatPrice(product.price)}</TableCell>
+                          <TableCell>{product.available}</TableCell>
+                          <TableCell>{product.organic ? "Sí" : "No"}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditDialog(product)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openDeleteDialog(product.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tab de Reservas */}
+          <TabsContent value="reservations">
+            <ReservationsManagement />
+          </TabsContent>
+
+          {/* Tab de Configuración de Despachos */}
+          <TabsContent value="dispatch">
+            <DispatchSettings />
+          </TabsContent>
+
+          {/* Tab de Fechas Bloqueadas */}
+          <TabsContent value="blocked-dates">
+            <BlockedDatesManager />
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Product Create/Edit Dialog */}
