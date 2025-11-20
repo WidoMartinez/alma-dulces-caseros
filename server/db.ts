@@ -644,22 +644,24 @@ export async function getAllOrders() {
           .select()
           .from(orderItems)
           .where(eq(orderItems.orderId, order.id));
-        
+
         // Obtener información de usuario si existe
         let user = null;
         if (order.userId) {
           user = await getUserById(order.userId);
         }
 
-        return { 
-          ...order, 
+        return {
+          ...order,
           items,
-          user: user ? {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-          } : null
+          user: user
+            ? {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+              }
+            : null,
         };
       })
     );
@@ -1112,10 +1114,10 @@ export async function addBlockedDate(
     } else {
       dateObj = new Date(dateData.date as string);
     }
-    
+
     // Normalizar la fecha a medianoche (00:00:00) para consistencia
     dateObj.setHours(0, 0, 0, 0);
-    
+
     const dateToInsert = {
       ...dateData,
       date: dateObj,
@@ -1187,10 +1189,7 @@ export async function isDateAvailableForDispatch(date: Date): Promise<boolean> {
       .select()
       .from(blockedDates)
       .where(
-        and(
-          gte(blockedDates.date, dateStart),
-          lte(blockedDates.date, dateEnd)
-        )
+        and(gte(blockedDates.date, dateStart), lte(blockedDates.date, dateEnd))
       )
       .limit(1);
 

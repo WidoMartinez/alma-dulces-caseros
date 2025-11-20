@@ -18,7 +18,7 @@ El problema se encontraba en el archivo `server/db.ts`, en la función `isDateAv
 const blockedDate = await db
   .select()
   .from(blockedDates)
-  .where(eq(blockedDates.date, dateStart))  // ❌ Comparación exacta de timestamp
+  .where(eq(blockedDates.date, dateStart)) // ❌ Comparación exacta de timestamp
   .limit(1);
 ```
 
@@ -53,14 +53,15 @@ const blockedDate = await db
   .from(blockedDates)
   .where(
     and(
-      gte(blockedDates.date, dateStart),  // Mayor o igual a inicio del día (00:00:00)
-      lte(blockedDates.date, dateEnd)     // Menor o igual a fin del día (23:59:59)
+      gte(blockedDates.date, dateStart), // Mayor o igual a inicio del día (00:00:00)
+      lte(blockedDates.date, dateEnd) // Menor o igual a fin del día (23:59:59)
     )
   )
   .limit(1);
 ```
 
-**Explicación**: 
+**Explicación**:
+
 - `dateStart`: fecha normalizada a 00:00:00.000
 - `dateEnd`: fecha normalizada a 23:59:59.999
 - Busca cualquier fecha bloqueada que esté dentro de ese rango de 24 horas
@@ -114,18 +115,13 @@ const dateToInsert = {
 
 ```typescript
 // ❌ EVITAR: Comparación exacta de fechas
-where(eq(dateColumn, someDate))
+where(eq(dateColumn, someDate));
 
 // ✅ USAR: Comparación por rango de día
-where(
-  and(
-    gte(dateColumn, startOfDay),
-    lte(dateColumn, endOfDay)
-  )
-)
+where(and(gte(dateColumn, startOfDay), lte(dateColumn, endOfDay)));
 
 // ✅ USAR: Normalización de fechas
-date.setHours(0, 0, 0, 0);  // Para trabajar solo con días
+date.setHours(0, 0, 0, 0); // Para trabajar solo con días
 ```
 
 ## Testing Recomendado
