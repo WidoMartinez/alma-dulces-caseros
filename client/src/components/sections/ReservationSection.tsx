@@ -1,7 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Users } from "lucide-react";
+import { Calendar, Clock, Users, Package } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ReservationSectionProps {
   isAuthenticated: boolean;
@@ -9,13 +17,36 @@ interface ReservationSectionProps {
 
 export default function ReservationSection({ isAuthenticated }: ReservationSectionProps) {
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
   const [step, setStep] = useState(1);
 
+  const { data: products = [] } = trpc.products.list.useQuery();
+  const { data: dispatchSettings } = trpc.dispatch.getSettings.useQuery();
+
+  const createReservationMutation = trpc.reservations.create.useMutation({
+    onSuccess: () => {
+      toast.success("Reserva realizada exitosamente");
+      setStep(1);
+      setSelectedDate("");
+      setSelectedProductId("");
+      setQuantity(1);
+      setNotes("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al crear la reserva");
+    },
+  });
+
   const handleReserve = () => {
     if (!selectedDate) {
       toast.error("Por favor selecciona una fecha");
+      return;
+    }
+
+    if (!selectedProductId) {
+      toast.error("Por favor selecciona un producto");
       return;
     }
 
@@ -24,22 +55,25 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
       return;
     }
 
-    // Here we would submit the reservation
-    toast.success("Reserva realizada exitosamente");
-    setStep(1);
-    setSelectedDate("");
-    setQuantity(1);
-    setNotes("");
+    // Crear la reserva
+    createReservationMutation.mutate({
+      productId: parseInt(selectedProductId),
+      quantity,
+      reservedDate: selectedDate,
+      notes: notes.trim() || undefined,
+    });
   };
 
-  // Get minimum date (tomorrow)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  // Calcular fecha mínima y máxima basado en la configuración
+  const minAdvanceDays = dispatchSettings?.minAdvanceDays || 1;
+  const maxAdvanceDays = dispatchSettings?.maxAdvanceDays || 30;
 
-  // Get maximum date (3 months from now)
+  const minDate = new Date();
+  minDate.setDate(minDate.getDate() + minAdvanceDays);
+  const minDateStr = minDate.toISOString().split("T")[0];
+
   const maxDate = new Date();
-  maxDate.setMonth(maxDate.getMonth() + 3);
+  maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
   const maxDateStr = maxDate.toISOString().split("T")[0];
 
   return (
@@ -105,30 +139,64 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
             <h3 className="text-2xl font-bold mb-6">Hacer una Reserva</h3>
 
             <div className="space-y-6">
-              {/* Date Selection */}
+              {/* Product Selection */}
               <div>
                 <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
-                  <Calendar size={18} className="text-accent" />
-                  Fecha de Entrega
+                  <Package size={18} className="text-accent" />
+                  Producto
                 </label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => {
-                    setSelectedDate(e.target.value);
+                <Select
+                  value={selectedProductId}
+                  onValueChange={(value) => {
+                    setSelectedProductId(value);
                     setStep(Math.max(step, 2));
                   }}
-                  min={minDate}
-                  max={maxDateStr}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-background"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Disponible desde mañana hasta 3 meses adelante
-                </p>
+                  disabled={!isAuthenticated}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona un producto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product.id} value={product.id.toString()}>
+                        {product.name} - ${(product.price / 100).toFixed(0)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!isAuthenticated && (
+                  <p className="text-xs text-destructive mt-2">
+                    Debes iniciar sesión para hacer una reserva
+                  </p>
+                )}
               </div>
 
+              {/* Date Selection */}
+              {selectedProductId && (
+                <div>
+                  <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Calendar size={18} className="text-accent" />
+                    Fecha de Entrega
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      setStep(Math.max(step, 3));
+                    }}
+                    min={minDateStr}
+                    max={maxDateStr}
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-background"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Reserva con {minAdvanceDays} día{minAdvanceDays > 1 ? 's' : ''} de anticipación mínima
+                  </p>
+                </div>
+              )}
+
               {/* Quantity Selection */}
-              {selectedDate && (
+              {selectedProductId && selectedDate && (
                 <div>
                   <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
                     <Users size={18} className="text-accent" />
@@ -153,7 +221,7 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
               )}
 
               {/* Notes */}
-              {selectedDate && (
+              {selectedProductId && selectedDate && (
                 <div>
                   <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
                     <Clock size={18} className="text-accent" />
@@ -170,13 +238,16 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
               )}
 
               {/* Summary */}
-              {selectedDate && (
+              {selectedProductId && selectedDate && (
                 <div className="bg-accent/10 rounded-lg p-4 border border-accent/20">
                   <p className="text-sm text-muted-foreground mb-2">
                     <strong>Resumen de tu reserva:</strong>
                   </p>
                   <p className="text-sm">
-                    Fecha: <strong>{new Date(selectedDate).toLocaleDateString("es-CL")}</strong>
+                    Producto: <strong>{products.find(p => p.id === parseInt(selectedProductId))?.name}</strong>
+                  </p>
+                  <p className="text-sm">
+                    Fecha: <strong>{new Date(selectedDate + 'T12:00:00').toLocaleDateString("es-CL")}</strong>
                   </p>
                   <p className="text-sm">
                     Cantidad: <strong>{quantity} unidades</strong>
@@ -188,10 +259,17 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
               <div className="space-y-3 pt-4">
                 <Button
                   onClick={handleReserve}
-                  disabled={!selectedDate || !isAuthenticated}
+                  disabled={!selectedDate || !selectedProductId || !isAuthenticated || createReservationMutation.isPending}
                   className="w-full"
                 >
-                  Confirmar Reserva
+                  {createReservationMutation.isPending ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Procesando...
+                    </>
+                  ) : (
+                    "Confirmar Reserva"
+                  )}
                 </Button>
                 {!isAuthenticated && (
                   <p className="text-xs text-destructive text-center">
