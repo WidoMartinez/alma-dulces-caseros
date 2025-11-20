@@ -276,14 +276,20 @@ export default function ReservationSection({
                       <SelectValue placeholder="Selecciona un producto" />
                     </SelectTrigger>
                     <SelectContent>
-                      {products.map(product => (
-                        <SelectItem
-                          key={product.id}
-                          value={product.id.toString()}
-                        >
-                          {product.name} ({product.wholeName || "Completo"}) - ${((product.wholePrice || product.price) / 100).toFixed(0)}
-                        </SelectItem>
-                      ))}
+                      {products.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          No hay productos con opción completa disponibles para reserva
+                        </div>
+                      ) : (
+                        products.map(product => (
+                          <SelectItem
+                            key={product.id}
+                            value={product.id.toString()}
+                          >
+                            {product.name} ({product.wholeName || "Completo"}) - ${((product.wholePrice || product.price) / 100).toFixed(0)}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
 
