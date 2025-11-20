@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -44,22 +50,30 @@ const statusColors: Record<ReservationStatus, string> = {
  */
 export default function ReservationsManagement() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ReservationStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<ReservationStatus | "all">(
+    "all"
+  );
 
   const utils = trpc.useUtils();
-  const { data: reservations = [], isLoading } = trpc.admin.reservations.list.useQuery();
+  const { data: reservations = [], isLoading } =
+    trpc.admin.reservations.list.useQuery();
 
-  const updateStatusMutation = trpc.admin.reservations.updateStatus.useMutation({
-    onSuccess: () => {
-      toast.success("Estado de reserva actualizado exitosamente");
-      utils.admin.reservations.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error("Error al actualizar estado: " + error.message);
-    },
-  });
+  const updateStatusMutation = trpc.admin.reservations.updateStatus.useMutation(
+    {
+      onSuccess: () => {
+        toast.success("Estado de reserva actualizado exitosamente");
+        utils.admin.reservations.list.invalidate();
+      },
+      onError: error => {
+        toast.error("Error al actualizar estado: " + error.message);
+      },
+    }
+  );
 
-  const handleStatusChange = (reservationId: number, newStatus: ReservationStatus) => {
+  const handleStatusChange = (
+    reservationId: number,
+    newStatus: ReservationStatus
+  ) => {
     updateStatusMutation.mutate({
       reservationId,
       status: newStatus,
@@ -74,14 +88,19 @@ export default function ReservationsManagement() {
   };
 
   // Filtrar reservas
-  const filteredReservations = reservations.filter((reservation) => {
+  const filteredReservations = reservations.filter(reservation => {
     const matchesSearch =
       searchTerm === "" ||
-      reservation.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (reservation.items && reservation.items.some(item => 
-        item.product?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      ));
+      reservation.user?.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      reservation.user?.email
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (reservation.items &&
+        reservation.items.some(item =>
+          item.product?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        ));
 
     const matchesStatus =
       statusFilter === "all" || reservation.status === statusFilter;
@@ -106,14 +125,16 @@ export default function ReservationsManagement() {
               <Input
                 placeholder="Buscar por cliente o producto..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
           </div>
           <Select
             value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as ReservationStatus | "all")}
+            onValueChange={value =>
+              setStatusFilter(value as ReservationStatus | "all")
+            }
           >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Filtrar por estado" />
@@ -152,9 +173,11 @@ export default function ReservationsManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredReservations.map((reservation) => (
+                {filteredReservations.map(reservation => (
                   <TableRow key={reservation.id}>
-                    <TableCell className="font-medium">#{reservation.id}</TableCell>
+                    <TableCell className="font-medium">
+                      #{reservation.id}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
@@ -185,28 +208,35 @@ export default function ReservationsManagement() {
                                 </div>
                                 {item.product && (
                                   <div className="text-xs text-muted-foreground">
-                                    {formatPrice(item.product.price)} × {item.quantity}
+                                    {formatPrice(item.product.price)} ×{" "}
+                                    {item.quantity}
                                   </div>
                                 )}
                               </div>
                             ))
                           ) : (
-                            <div className="text-sm text-muted-foreground">Sin productos</div>
+                            <div className="text-sm text-muted-foreground">
+                              Sin productos
+                            </div>
                           )}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {reservation.items 
-                        ? reservation.items.reduce((sum, item) => sum + item.quantity, 0)
-                        : 0
-                      }
+                      {reservation.items
+                        ? reservation.items.reduce(
+                            (sum, item) => sum + item.quantity,
+                            0
+                          )
+                        : 0}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>
-                          {format(new Date(reservation.reservedDate), "PPP", { locale: es })}
+                          {format(new Date(reservation.reservedDate), "PPP", {
+                            locale: es,
+                          })}
                         </span>
                       </div>
                     </TableCell>
@@ -221,8 +251,11 @@ export default function ReservationsManagement() {
                     <TableCell>
                       <Select
                         value={reservation.status}
-                        onValueChange={(value) =>
-                          handleStatusChange(reservation.id, value as ReservationStatus)
+                        onValueChange={value =>
+                          handleStatusChange(
+                            reservation.id,
+                            value as ReservationStatus
+                          )
                         }
                         disabled={updateStatusMutation.isPending}
                       >
@@ -248,20 +281,21 @@ export default function ReservationsManagement() {
         {!isLoading && reservations.length > 0 && (
           <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
             <div>
-              Mostrando {filteredReservations.length} de {reservations.length} reservas
+              Mostrando {filteredReservations.length} de {reservations.length}{" "}
+              reservas
             </div>
             <div className="flex gap-4">
               <span>
                 Pendientes:{" "}
-                {reservations.filter((r) => r.status === "pending").length}
+                {reservations.filter(r => r.status === "pending").length}
               </span>
               <span>
                 Confirmadas:{" "}
-                {reservations.filter((r) => r.status === "confirmed").length}
+                {reservations.filter(r => r.status === "confirmed").length}
               </span>
               <span>
                 Completadas:{" "}
-                {reservations.filter((r) => r.status === "completed").length}
+                {reservations.filter(r => r.status === "completed").length}
               </span>
             </div>
           </div>
