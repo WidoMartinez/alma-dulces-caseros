@@ -237,6 +237,13 @@ export const appRouter = router({
         const userId = ctx.user?.id;
 
         try {
+          // Procesar deliveryDate correctamente para evitar problemas de zona horaria
+          let deliveryDate: Date | undefined;
+          if (input.deliveryDate) {
+            const [year, month, day] = input.deliveryDate.split('T')[0].split('-').map(Number);
+            deliveryDate = new Date(year, month - 1, day, 12, 0, 0); // Mediodía para evitar problemas de timezone
+          }
+
           const result = await createOrder({
             userId,
             customerEmail: input.customerEmail,
@@ -245,9 +252,7 @@ export const appRouter = router({
             isGuest,
             totalPrice,
             deliveryAddress: input.deliveryAddress,
-            deliveryDate: input.deliveryDate
-              ? new Date(input.deliveryDate)
-              : undefined,
+            deliveryDate,
             notes: input.notes,
             items: input.items,
           });
@@ -594,8 +599,9 @@ export const appRouter = router({
         .mutation(async ({ input }) => {
           console.log("[Admin] Agregando fecha bloqueada:", input.date);
           try {
-            // Convertir la fecha string a Date y asegurarse de que sea válida
-            const dateObj = new Date(input.date);
+            // Parsear la fecha correctamente para evitar problemas de zona horaria
+            const [year, month, day] = input.date.split('T')[0].split('-').map(Number);
+            const dateObj = new Date(year, month - 1, day, 0, 0, 0, 0);
 
             // Validar que la fecha sea válida
             if (isNaN(dateObj.getTime())) {
