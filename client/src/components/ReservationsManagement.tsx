@@ -79,7 +79,9 @@ export default function ReservationsManagement() {
       searchTerm === "" ||
       reservation.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       reservation.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.product?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      (reservation.items && reservation.items.some(item => 
+        item.product?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      ));
 
     const matchesStatus =
       statusFilter === "all" || reservation.status === statusFilter;
@@ -174,19 +176,32 @@ export default function ReservationsManagement() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium">
-                            {reservation.product?.name || "Producto eliminado"}
-                          </div>
-                          {reservation.product && (
-                            <div className="text-sm text-muted-foreground">
-                              {formatPrice(reservation.product.price)}
-                            </div>
+                        <div className="space-y-1">
+                          {reservation.items && reservation.items.length > 0 ? (
+                            reservation.items.map((item, idx) => (
+                              <div key={idx}>
+                                <div className="font-medium text-sm">
+                                  {item.product?.name || "Producto eliminado"}
+                                </div>
+                                {item.product && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {formatPrice(item.product.price)} × {item.quantity}
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-sm text-muted-foreground">Sin productos</div>
                           )}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{reservation.quantity}</TableCell>
+                    <TableCell>
+                      {reservation.items 
+                        ? reservation.items.reduce((sum, item) => sum + item.quantity, 0)
+                        : 0
+                      }
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
