@@ -1,4 +1,7 @@
-import { getDispatchSettings, isDateAvailableForDispatch } from "./server/db.ts";
+import {
+  getDispatchSettings,
+  isDateAvailableForDispatch,
+} from "./server/db.ts";
 import dotenv from "dotenv";
 
 // Cargar variables de entorno
@@ -28,9 +31,19 @@ async function testDateAvailability() {
       testDate.setHours(12, 0, 0, 0);
 
       const dayOfWeek = testDate.getDay();
-      const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const dayNames = [
+        "Domingo",
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+      ];
 
-      console.log(`Probando: ${testDate.toISOString().split("T")[0]} (${dayNames[dayOfWeek]}) - Día ${dayOfWeek}`);
+      console.log(
+        `Probando: ${testDate.toISOString().split("T")[0]} (${dayNames[dayOfWeek]}) - Día ${dayOfWeek}`
+      );
 
       const isAvailable = await isDateAvailableForDispatch(testDate);
       console.log(`  ✓ Disponible: ${isAvailable ? "SÍ" : "NO"}`);
