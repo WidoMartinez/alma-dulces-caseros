@@ -1061,7 +1061,17 @@ export async function addBlockedDate(
   }
 
   try {
-    const result = await db.insert(blockedDates).values(dateData);
+    // Asegurar que la fecha sea un objeto Date válido
+    const dateToInsert = {
+      ...dateData,
+      date: dateData.date instanceof Date 
+        ? dateData.date 
+        : new Date(dateData.date as string)
+    };
+
+    console.log("[Database] Insertando fecha bloqueada:", dateToInsert);
+    
+    const result = await db.insert(blockedDates).values(dateToInsert);
     const dateId = Number(result[0].insertId);
     
     const blockedDate = await db
@@ -1070,9 +1080,14 @@ export async function addBlockedDate(
       .where(eq(blockedDates.id, dateId))
       .limit(1);
     
+    if (!blockedDate || blockedDate.length === 0) {
+      throw new Error("No se pudo recuperar la fecha bloqueada después de insertarla");
+    }
+    
     return blockedDate[0];
   } catch (error) {
     console.error("[Database] Failed to add blocked date:", error);
+    console.error("[Database] Datos recibidos:", dateData);
     throw error;
   }
 }

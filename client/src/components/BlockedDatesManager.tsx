@@ -96,8 +96,13 @@ export default function BlockedDatesManager() {
       return;
     }
 
+    // Asegurar que la fecha se envíe en formato ISO correcto
+    // El input type="date" devuelve formato YYYY-MM-DD, añadimos la hora
+    const dateToSend = new Date(newDate);
+    dateToSend.setHours(0, 0, 0, 0);
+
     addBlockedDateMutation.mutate({
-      date: newDate,
+      date: dateToSend.toISOString(),
       reason: newReason.trim(),
     });
   };

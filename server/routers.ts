@@ -500,16 +500,36 @@ export const appRouter = router({
         .mutation(async ({ input }) => {
           console.log("[Admin] Agregando fecha bloqueada:", input.date);
           try {
+            // Convertir la fecha string a Date y asegurarse de que sea válida
+            const dateObj = new Date(input.date);
+            
+            // Validar que la fecha sea válida
+            if (isNaN(dateObj.getTime())) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "La fecha proporcionada no es válida",
+              });
+            }
+
+            console.log("[Admin] Fecha convertida:", dateObj);
+            
             const blockedDate = await addBlockedDate({
-              date: new Date(input.date),
+              date: dateObj,
               reason: input.reason,
             });
+            
+            console.log("[Admin] Fecha bloqueada agregada:", blockedDate);
             return { success: true, blockedDate };
           } catch (error) {
             console.error("[Admin] Error al agregar fecha bloqueada:", error);
+            // Si el error ya es un TRPCError, lanzarlo directamente
+            if (error instanceof TRPCError) {
+              throw error;
+            }
+            // De lo contrario, envolver el error
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
-              message: "Error al agregar la fecha bloqueada",
+              message: error instanceof Error ? error.message : "Error al agregar la fecha bloqueada",
             });
           }
         }),
