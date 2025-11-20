@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 
 interface CheckoutProps {
-  cartItems: Array<{ productId: number; quantity: number }>;
+  cartItems: Array<{ productId: number; quantity: number; isWholeUnit?: boolean }>;
   onCheckoutComplete: () => void;
 }
 
@@ -87,12 +87,15 @@ export default function Checkout({ cartItems, onCheckoutComplete }: CheckoutProp
   const cartProducts = cartItems
     .map((item) => {
       const product = products.find((p) => p.id === item.productId);
-      return product ? { ...product, quantity: item.quantity } : null;
+      return product ? { ...product, quantity: item.quantity, isWholeUnit: item.isWholeUnit } : null;
     })
     .filter(Boolean) as Array<any>;
 
   const total = cartProducts.reduce((sum, item) => {
-    return sum + (item.price * item.quantity);
+    const price = item.isWholeUnit && item.hasWholeOption && item.wholePrice 
+      ? item.wholePrice 
+      : item.price;
+    return sum + (price * item.quantity);
   }, 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,10 +117,15 @@ export default function Checkout({ cartItems, onCheckoutComplete }: CheckoutProp
     // Preparar items del pedido
     const orderItems = cartItems.map((item) => {
       const product = products.find((p) => p.id === item.productId);
+      // Usar wholePrice si está seleccionado y disponible
+      const price = item.isWholeUnit && product?.hasWholeOption && product?.wholePrice
+        ? product.wholePrice
+        : product?.price || 0;
       return {
         productId: item.productId,
         quantity: item.quantity,
-        priceAtPurchase: product?.price || 0,
+        priceAtPurchase: price,
+        isWholeUnit: item.isWholeUnit || false,
       };
     });
 

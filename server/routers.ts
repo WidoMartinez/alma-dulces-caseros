@@ -218,6 +218,7 @@ export const appRouter = router({
                 productId: z.number(),
                 quantity: z.number().min(1),
                 priceAtPurchase: z.number(),
+                isWholeUnit: z.boolean().optional(),
               })
             )
             .min(1, "Debe haber al menos un producto en el pedido"),
@@ -474,6 +475,9 @@ export const appRouter = router({
             imageUrl: z.string().max(500).optional(),
             available: z.number().min(0).default(0),
             organic: z.number().min(0).max(1).default(1),
+            hasWholeOption: z.number().min(0).max(1).default(0),
+            wholePrice: z.number().min(0).optional(),
+            wholeName: z.string().max(150).optional(),
           })
         )
         .mutation(async ({ input }) => {
@@ -493,6 +497,9 @@ export const appRouter = router({
             imageUrl: z.string().max(500).optional(),
             available: z.number().min(0).optional(),
             organic: z.number().min(0).max(1).optional(),
+            hasWholeOption: z.number().min(0).max(1).optional(),
+            wholePrice: z.number().min(0).optional(),
+            wholeName: z.string().max(150).optional(),
           })
         )
         .mutation(async ({ input }) => {

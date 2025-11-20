@@ -621,6 +621,7 @@ export async function createOrder(orderData: {
     productId: number;
     quantity: number;
     priceAtPurchase: number;
+    isWholeUnit?: boolean;
   }>;
 }) {
   const db = await getDb();
@@ -657,6 +658,7 @@ export async function createOrder(orderData: {
           productId: item.productId,
           quantity: item.quantity,
           priceAtPurchase: item.priceAtPurchase,
+          isWholeUnit: item.isWholeUnit ? 1 : 0,
         }))
       );
     }
