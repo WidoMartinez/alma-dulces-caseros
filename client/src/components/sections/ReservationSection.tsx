@@ -40,8 +40,11 @@ export default function ReservationSection({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [step, setStep] = useState(1);
 
-  const { data: products = [] } = trpc.products.list.useQuery();
+  const { data: allProducts = [] } = trpc.products.list.useQuery();
   const { data: dispatchSettings } = trpc.dispatch.getSettings.useQuery();
+
+  // Filtrar solo productos que tienen opción completa para reservas
+  const products = allProducts.filter(p => p.hasWholeOption && p.wholePrice);
 
   const createReservationMutation = trpc.reservations.create.useMutation({
     onSuccess: () => {
@@ -71,6 +74,9 @@ export default function ReservationSection({
     // Verificar si el producto ya está en el carrito
     const existingItem = cart.find(item => item.productId === product.id);
 
+    // Para reservas, siempre usar el precio de unidad completa
+    const priceToUse = product.wholePrice || product.price;
+
     if (existingItem) {
       // Actualizar cantidad
       setCart(
@@ -89,7 +95,7 @@ export default function ReservationSection({
           productId: product.id,
           productName: product.name,
           quantity,
-          price: product.price,
+          price: priceToUse,
         },
       ]);
       toast.success(`Agregado al carrito: ${product.name}`);
@@ -171,6 +177,12 @@ export default function ReservationSection({
             desees y nosotros nos encargaremos de preparar tus productos con la
             máxima calidad.
           </p>
+          <div className="mt-4 p-4 bg-accent/10 rounded-lg border border-accent/20 max-w-2xl mx-auto">
+            <p className="text-sm text-center">
+              💡 <strong>Nota:</strong> Las reservas solo están disponibles para productos completos.
+              Para porciones individuales, utiliza el carrito de compras.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -264,14 +276,20 @@ export default function ReservationSection({
                       <SelectValue placeholder="Selecciona un producto" />
                     </SelectTrigger>
                     <SelectContent>
-                      {products.map(product => (
-                        <SelectItem
-                          key={product.id}
-                          value={product.id.toString()}
-                        >
-                          {product.name} - ${(product.price / 100).toFixed(0)}
-                        </SelectItem>
-                      ))}
+                      {products.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          No hay productos con opción completa disponibles para reserva
+                        </div>
+                      ) : (
+                        products.map(product => (
+                          <SelectItem
+                            key={product.id}
+                            value={product.id.toString()}
+                          >
+                            {product.name} ({product.wholeName || "Completo"}) - ${((product.wholePrice || product.price) / 100).toFixed(0)}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
 
@@ -330,7 +348,7 @@ export default function ReservationSection({
                             {item.productName}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            ${(item.price / 100).toFixed(0)} c/u
+                            ${(item.price / 100).toFixed(0)} c/u (Completo)
                           </p>
                         </div>
                         <div className="flex items-center gap-2">

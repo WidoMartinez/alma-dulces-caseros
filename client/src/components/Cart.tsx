@@ -4,9 +4,9 @@ import { toast } from "sonner";
 import type { Product } from "@/types";
 
 interface CartProps {
-  items: Array<{ productId: number; quantity: number }>;
+  items: Array<{ productId: number; quantity: number; isWholeUnit?: boolean }>;
   products: Product[];
-  onRemove: (productId: number) => void;
+  onRemove: (productId: number, isWholeUnit?: boolean) => void;
   onClose: () => void;
   onCheckout: () => void;
 }
@@ -15,13 +15,17 @@ export default function Cart({ items, products, onRemove, onClose, onCheckout }:
   const cartProducts = items
     .map(item => {
       const product = products.find(p => p.id === item.productId);
-      return product ? { ...product, quantity: item.quantity } : null;
+      return product ? { ...product, quantity: item.quantity, isWholeUnit: item.isWholeUnit } : null;
     })
     .filter(Boolean) as Array<any>;
 
   const total = cartProducts.reduce((sum, item) => {
     if (!item) return sum;
-    return sum + (item.price * item.quantity) / 100;
+    // Usar wholePrice si está seleccionado y disponible, sino usar precio normal
+    const price = item.isWholeUnit && item.hasWholeOption && item.wholePrice 
+      ? item.wholePrice 
+      : item.price;
+    return sum + (price * item.quantity) / 100;
   }, 0);
 
   const handleCheckout = () => {
@@ -57,9 +61,13 @@ export default function Cart({ items, products, onRemove, onClose, onCheckout }:
             </div>
           ) : (
             <div className="space-y-4">
-              {cartProducts.map((item) => (
-                item && (
-                  <div key={item.productId} className="flex gap-4 pb-4 border-b border-border last:border-b-0">
+              {cartProducts.map((item, index) => {
+                if (!item) return null;
+                const itemPrice = item.isWholeUnit && item.hasWholeOption && item.wholePrice 
+                  ? item.wholePrice 
+                  : item.price;
+                return (
+                  <div key={`${item.productId}-${item.isWholeUnit ? 'whole' : 'portion'}`} className="flex gap-4 pb-4 border-b border-border last:border-b-0">
                     <div className="text-3xl flex-shrink-0">
                       {item.name.includes("Frutos") ? "🍓" : 
                        item.name.includes("Chocolate") ? "🍫" :
@@ -69,16 +77,21 @@ export default function Cart({ items, products, onRemove, onClose, onCheckout }:
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm leading-tight">{item.name}</h3>
+                      {item.isWholeUnit && item.hasWholeOption && (
+                        <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">
+                          {item.wholeName || "Completo"}
+                        </span>
+                      )}
                       <p className="text-xs text-muted-foreground mt-1">
-                        ${(item.price / 100).toFixed(2)} x {item.quantity}
+                        ${(itemPrice / 100).toFixed(2)} x {item.quantity}
                       </p>
                       <p className="text-sm font-bold text-accent mt-2">
-                        ${((item.price * item.quantity) / 100).toFixed(2)}
+                        ${((itemPrice * item.quantity) / 100).toFixed(2)}
                       </p>
                     </div>
                     <button
                       onClick={() => {
-                        onRemove(item.productId);
+                        onRemove(item.productId, item.isWholeUnit);
                         toast.success("Producto removido del carrito");
                       }}
                       className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors flex-shrink-0"
@@ -86,8 +99,8 @@ export default function Cart({ items, products, onRemove, onClose, onCheckout }:
                       <Trash2 size={16} />
                     </button>
                   </div>
-                )
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -48,6 +48,9 @@ type ProductFormData = {
   imageUrl: string;
   available: number;
   organic: number;
+  hasWholeOption: number;
+  wholePrice?: number;
+  wholeName?: string;
 };
 
 export default function Admin() {
@@ -66,6 +69,9 @@ export default function Admin() {
     imageUrl: "",
     available: 0,
     organic: 1,
+    hasWholeOption: 0,
+    wholePrice: undefined,
+    wholeName: undefined,
   });
 
   const utils = trpc.useUtils();
@@ -117,6 +123,9 @@ export default function Admin() {
       imageUrl: "",
       available: 0,
       organic: 1,
+      hasWholeOption: 0,
+      wholePrice: undefined,
+      wholeName: undefined,
     });
     setIsProductDialogOpen(true);
   };
@@ -133,6 +142,9 @@ export default function Admin() {
       imageUrl: product.imageUrl || "",
       available: product.available,
       organic: product.organic,
+      hasWholeOption: product.hasWholeOption || 0,
+      wholePrice: product.wholePrice || undefined,
+      wholeName: product.wholeName || undefined,
     });
     setIsProductDialogOpen(true);
   };
@@ -283,7 +295,8 @@ export default function Admin() {
                         <TableHead>ID</TableHead>
                         <TableHead>Nombre</TableHead>
                         <TableHead>Categoría</TableHead>
-                        <TableHead>Precio</TableHead>
+                        <TableHead>Precio Porción</TableHead>
+                        <TableHead>Precio Completo</TableHead>
                         <TableHead>Disponibles</TableHead>
                         <TableHead>Orgánico</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
@@ -296,6 +309,11 @@ export default function Admin() {
                           <TableCell className="font-medium">{product.name}</TableCell>
                           <TableCell>{getCategoryName(product.categoryId)}</TableCell>
                           <TableCell>{formatPrice(product.price)}</TableCell>
+                          <TableCell>
+                            {product.hasWholeOption && product.wholePrice
+                              ? formatPrice(product.wholePrice)
+                              : "-"}
+                          </TableCell>
                           <TableCell>{product.available}</TableCell>
                           <TableCell>{product.organic ? "Sí" : "No"}</TableCell>
                           <TableCell className="text-right">
@@ -476,6 +494,78 @@ export default function Admin() {
                   }
                   placeholder="https://ejemplo.com/imagen.jpg"
                 />
+              </div>
+
+              {/* Opciones de Unidad Completa */}
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="hasWholeOption" className="font-semibold text-base">
+                    Opción de Unidad Completa
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hasWholeOption">¿Tiene opción completa?</Label>
+                  <Select
+                    value={formData.hasWholeOption.toString()}
+                    onValueChange={(value) => {
+                      const hasWhole = parseInt(value);
+                      setFormData({ 
+                        ...formData, 
+                        hasWholeOption: hasWhole,
+                        // Limpiar campos si se deshabilita
+                        wholePrice: hasWhole === 0 ? undefined : formData.wholePrice,
+                        wholeName: hasWhole === 0 ? undefined : formData.wholeName,
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">No</SelectItem>
+                      <SelectItem value="1">Sí</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Habilita esta opción si el producto se puede vender por porción o completo
+                  </p>
+                </div>
+
+                {formData.hasWholeOption === 1 && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="wholeName">Nombre de Unidad Completa</Label>
+                      <Input
+                        id="wholeName"
+                        value={formData.wholeName || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, wholeName: e.target.value })
+                        }
+                        placeholder="Ej: Torta Completa, Bandeja Completa"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Nombre descriptivo para la opción completa (opcional)
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="wholePrice">Precio Unidad Completa (CLP)*</Label>
+                      <Input
+                        id="wholePrice"
+                        type="number"
+                        min="0"
+                        value={formData.wholePrice || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, wholePrice: parseInt(e.target.value) || 0 })
+                        }
+                        required={formData.hasWholeOption === 1}
+                        placeholder="Precio de la unidad completa"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        El precio base es para una porción/unidad individual
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <DialogFooter>

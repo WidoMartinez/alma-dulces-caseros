@@ -57,10 +57,16 @@ export const products = mysqlTable("products", {
   name: varchar("name", { length: 150 }).notNull(),
   description: text("description"),
   ingredients: text("ingredients"),
-  price: int("price").notNull(), // Price in cents
+  price: int("price").notNull(), // Price in cents (precio por porción/unidad)
   imageUrl: varchar("imageUrl", { length: 500 }),
   available: int("available").default(0).notNull(),
   organic: int("organic").default(1).notNull(),
+  /** Indica si el producto tiene opción de unidad completa */
+  hasWholeOption: int("hasWholeOption").default(0).notNull(),
+  /** Precio de la unidad completa en centavos */
+  wholePrice: int("wholePrice"),
+  /** Nombre descriptivo para la unidad completa (ej: "Torta Completa") */
+  wholeName: varchar("wholeName", { length: 150 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -108,6 +114,8 @@ export const orderItems = mysqlTable("orderItems", {
   productId: int("productId").notNull(),
   quantity: int("quantity").notNull(),
   priceAtPurchase: int("priceAtPurchase").notNull(),
+  /** Indica si el item es unidad completa (1) o porción (0) */
+  isWholeUnit: int("isWholeUnit").default(0).notNull(),
 });
 
 export type OrderItem = typeof orderItems.$inferSelect;
@@ -138,6 +146,8 @@ export const reservationItems = mysqlTable("reservationItems", {
   reservationId: int("reservationId").notNull(),
   productId: int("productId").notNull(),
   quantity: int("quantity").notNull(),
+  /** Para reservas, siempre debe ser unidad completa (1) */
+  isWholeUnit: int("isWholeUnit").default(1).notNull(),
 });
 
 export type ReservationItem = typeof reservationItems.$inferSelect;

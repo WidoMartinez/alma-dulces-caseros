@@ -8,7 +8,7 @@ import ShareButtons from "@/components/ShareButtons";
 interface ProductsSectionProps {
   products: Product[];
   categories: Category[];
-  onAddToCart: (productId: number, quantity: number) => void;
+  onAddToCart: (productId: number, quantity: number, isWholeUnit?: boolean) => void;
 }
 
 export default function ProductsSection({
@@ -18,6 +18,8 @@ export default function ProductsSection({
 }: ProductsSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [quantities, setQuantities] = useState<Record<number, number>>({});
+  // Track if whole unit is selected for products with hasWholeOption
+  const [isWholeUnit, setIsWholeUnit] = useState<Record<number, boolean>>({});
 
   const filteredProducts = selectedCategory
     ? products.filter(p => p.categoryId === selectedCategory)
@@ -25,7 +27,8 @@ export default function ProductsSection({
 
   const handleAddToCart = (productId: number) => {
     const quantity = quantities[productId] || 1;
-    onAddToCart(productId, quantity);
+    const wholeUnit = isWholeUnit[productId] || false;
+    onAddToCart(productId, quantity, wholeUnit);
     toast.success("Producto agregado al carrito");
     setQuantities(prev => ({ ...prev, [productId]: 1 }));
   };
@@ -134,11 +137,50 @@ export default function ProductsSection({
                   <span className="text-xs text-muted-foreground ml-2">(12 reseñas)</span>
                 </div>
 
+                {/* Selector de Opción (Porción vs Completo) */}
+                {product.hasWholeOption && product.wholePrice && (
+                  <div className="mb-4">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setIsWholeUnit(prev => ({ ...prev, [product.id]: false }))}
+                        className={`px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
+                          !isWholeUnit[product.id]
+                            ? "bg-accent text-accent-foreground border-accent shadow-md"
+                            : "bg-background border-border hover:border-accent/50"
+                        }`}
+                      >
+                        Porción
+                      </button>
+                      <button
+                        onClick={() => setIsWholeUnit(prev => ({ ...prev, [product.id]: true }))}
+                        className={`px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
+                          isWholeUnit[product.id]
+                            ? "bg-accent text-accent-foreground border-accent shadow-md"
+                            : "bg-background border-border hover:border-accent/50"
+                        }`}
+                      >
+                        {product.wholeName || "Completo"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Price and Quantity */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-2xl font-bold text-accent">
-                    ${(product.price / 100).toFixed(2)}
-                  </span>
+                  <div>
+                    <span className="text-2xl font-bold text-accent">
+                      ${(
+                        (isWholeUnit[product.id] && product.hasWholeOption && product.wholePrice
+                          ? product.wholePrice
+                          : product.price) / 100
+                      ).toFixed(2)}
+                    </span>
+                    {product.hasWholeOption && product.wholePrice && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {isWholeUnit[product.id] ? "Unidad completa" : "Por porción"}
+                      </p>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 bg-muted rounded-lg border border-border">
                     <button
                       onClick={() =>

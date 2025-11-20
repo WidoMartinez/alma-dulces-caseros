@@ -20,27 +20,32 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState("inicio");
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [cartItems, setCartItems] = useState<Array<{ productId: number; quantity: number }>>([]);
+  const [cartItems, setCartItems] = useState<Array<{ productId: number; quantity: number; isWholeUnit?: boolean }>>([]);
   
   const { data: products = [] } = trpc.products.list.useQuery();
   const { data: categories = [] } = trpc.categories.list.useQuery();
 
-  const addToCart = (productId: number, quantity: number) => {
+  const addToCart = (productId: number, quantity: number, isWholeUnit?: boolean) => {
     setCartItems(prev => {
-      const existing = prev.find(item => item.productId === productId);
+      // Buscar si ya existe el mismo producto con la misma opción (porción/completo)
+      const existing = prev.find(item => 
+        item.productId === productId && item.isWholeUnit === isWholeUnit
+      );
       if (existing) {
         return prev.map(item =>
-          item.productId === productId
+          item.productId === productId && item.isWholeUnit === isWholeUnit
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prev, { productId, quantity }];
+      return [...prev, { productId, quantity, isWholeUnit }];
     });
   };
 
-  const removeFromCart = (productId: number) => {
-    setCartItems(prev => prev.filter(item => item.productId !== productId));
+  const removeFromCart = (productId: number, isWholeUnit?: boolean) => {
+    setCartItems(prev => prev.filter(item => 
+      !(item.productId === productId && item.isWholeUnit === isWholeUnit)
+    ));
   };
 
   const handleCheckout = () => {
