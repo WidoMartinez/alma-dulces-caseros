@@ -30,6 +30,14 @@ import {
   getPaymentTransactionByCommerceOrder,
   updatePaymentTransaction,
   getOrderById,
+  getAllReservations,
+  updateReservationStatus,
+  getDispatchSettings,
+  updateDispatchSettings,
+  getAllBlockedDates,
+  addBlockedDate,
+  removeBlockedDate,
+  isDateAvailableForDispatch,
 } from "./db";
 import { hashPassword } from "./_core/auth";
 import { z } from "zod";
@@ -393,6 +401,157 @@ export const appRouter = router({
         return { success: true };
       }),
     }),
+
+    // Gestión de reservas para administradores
+    reservations: router({
+      list: adminProcedure.query(async () => {
+        console.log("[Admin] Listando todas las reservas");
+        try {
+          return await getAllReservations();
+        } catch (error) {
+          console.error("[Admin] Error al listar reservas:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Error al obtener las reservas",
+          });
+        }
+      }),
+
+      updateStatus: adminProcedure
+        .input(
+          z.object({
+            reservationId: z.number(),
+            status: z.enum(["pending", "confirmed", "cancelled", "completed"]),
+          })
+        )
+        .mutation(async ({ input }) => {
+          console.log("[Admin] Actualizando estado de reserva:", input.reservationId);
+          try {
+            await updateReservationStatus(input.reservationId, input.status);
+            return { success: true };
+          } catch (error) {
+            console.error("[Admin] Error al actualizar estado de reserva:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error al actualizar el estado de la reserva",
+            });
+          }
+        }),
+    }),
+
+    // Configuración de despachos
+    dispatchSettings: router({
+      get: adminProcedure.query(async () => {
+        console.log("[Admin] Obteniendo configuración de despachos");
+        try {
+          return await getDispatchSettings();
+        } catch (error) {
+          console.error("[Admin] Error al obtener configuración:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Error al obtener la configuración de despachos",
+          });
+        }
+      }),
+
+      update: adminProcedure
+        .input(
+          z.object({
+            availableDays: z.string().optional(), // JSON array de días
+            startTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+            endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+            minAdvanceDays: z.number().min(0).optional(),
+            maxAdvanceDays: z.number().min(1).optional(),
+          })
+        )
+        .mutation(async ({ input }) => {
+          console.log("[Admin] Actualizando configuración de despachos");
+          try {
+            return await updateDispatchSettings(input);
+          } catch (error) {
+            console.error("[Admin] Error al actualizar configuración:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error al actualizar la configuración de despachos",
+            });
+          }
+        }),
+
+      getBlockedDates: adminProcedure.query(async () => {
+        console.log("[Admin] Obteniendo fechas bloqueadas");
+        try {
+          return await getAllBlockedDates();
+        } catch (error) {
+          console.error("[Admin] Error al obtener fechas bloqueadas:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Error al obtener las fechas bloqueadas",
+          });
+        }
+      }),
+
+      addBlockedDate: adminProcedure
+        .input(
+          z.object({
+            date: z.string(), // ISO date string
+            reason: z.string().min(1).max(255),
+          })
+        )
+        .mutation(async ({ input }) => {
+          console.log("[Admin] Agregando fecha bloqueada:", input.date);
+          try {
+            const blockedDate = await addBlockedDate({
+              date: new Date(input.date),
+              reason: input.reason,
+            });
+            return { success: true, blockedDate };
+          } catch (error) {
+            console.error("[Admin] Error al agregar fecha bloqueada:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error al agregar la fecha bloqueada",
+            });
+          }
+        }),
+
+      removeBlockedDate: adminProcedure
+        .input(z.number())
+        .mutation(async ({ input }) => {
+          console.log("[Admin] Eliminando fecha bloqueada:", input);
+          try {
+            await removeBlockedDate(input);
+            return { success: true };
+          } catch (error) {
+            console.error("[Admin] Error al eliminar fecha bloqueada:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error al eliminar la fecha bloqueada",
+            });
+          }
+        }),
+    }),
+  }),
+
+  // Endpoint público para validar disponibilidad de fechas
+  dispatch: router({
+    checkAvailability: publicProcedure
+      .input(z.object({
+        date: z.string(), // ISO date string
+      }))
+      .query(async ({ input }) => {
+        console.log("[Dispatch] Verificando disponibilidad de fecha:", input.date);
+        try {
+          const date = new Date(input.date);
+          const isAvailable = await isDateAvailableForDispatch(date);
+          return { available: isAvailable };
+        } catch (error) {
+          console.error("[Dispatch] Error al verificar disponibilidad:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Error al verificar disponibilidad de la fecha",
+          });
+        }
+      }),
   }),
 
   // Endpoints de pago con Flow
