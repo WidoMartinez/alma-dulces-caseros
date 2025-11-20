@@ -107,6 +107,7 @@ FLOW_API_KEY=tu-api-key-de-flow
 FLOW_SECRET_KEY=tu-secret-key-de-flow
 FLOW_API_URL=https://sandbox.flow.cl/api
 FLOW_RETURN_URL=http://localhost:5000/payment/success
+FLOW_CONFIRMATION_URL=http://localhost:5000/api/flow/webhook
 FLOW_CANCEL_URL=http://localhost:5000/payment/error
 
 # Producción
@@ -345,6 +346,7 @@ El sistema incluye integración completa con **Flow**, la pasarela de pagos líd
 - 🔒 **Transacciones seguras**: Firma HMAC-SHA256 y validación de webhooks
 - 📊 **Seguimiento completo**: Registro de todas las transacciones
 - ✅ **Confirmación automática**: Webhook para actualización de estados
+- 🔁 **Webhook dedicado**: Flow llama a `/api/flow/webhook` incluso si el cliente no regresa al sitio
 
 **Documentación completa**: Ver [docs/INTEGRACION_FLOW.md](./docs/INTEGRACION_FLOW.md)
 

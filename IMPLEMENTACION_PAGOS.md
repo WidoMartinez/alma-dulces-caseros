@@ -86,7 +86,7 @@ Nuevos endpoints:
   - Input: orderId, amount, customerEmail, subject
   - Output: paymentUrl, token, flowOrder
   
-- `payment.confirm` - Confirma pago (webhook)
+- `payment.confirm` - Confirma pago (lógica usada por el webhook `/api/flow/webhook`)
   - Input: token, s (firma)
   - Output: success, status
   - Actualiza orden y transacción
@@ -130,6 +130,7 @@ FLOW_API_KEY=tu-api-key
 FLOW_SECRET_KEY=tu-secret-key
 FLOW_API_URL=https://sandbox.flow.cl/api
 FLOW_RETURN_URL=http://localhost:5000/payment/success
+FLOW_CONFIRMATION_URL=http://localhost:5000/api/flow/webhook
 FLOW_CANCEL_URL=http://localhost:5000/payment/error
 ```
 
@@ -284,7 +285,7 @@ Actualizaciones:
    ↓
 7. Usuario: Completa pago en Flow
    ↓
-8. Flow: Webhook a payment.confirm
+8. Flow: Webhook `POST /api/flow/webhook`
    ↓
 9. Backend: Actualiza transacción y orden
    ↓
@@ -370,6 +371,7 @@ FLOW_API_KEY=api-key-produccion
 FLOW_SECRET_KEY=secret-key-produccion
 FLOW_API_URL=https://www.flow.cl/api
 FLOW_RETURN_URL=https://tudominio.com/payment/success
+FLOW_CONFIRMATION_URL=https://tudominio.com/api/flow/webhook
 FLOW_CANCEL_URL=https://tudominio.com/payment/error
 ```
 
@@ -383,7 +385,7 @@ mysql -u usuario -p alma_dulces_prod < drizzle/0003_add_payment_transactions.sql
 - Verificar certificado SSL válido
 
 #### 5. Configurar Webhook en Flow
-- URL: `https://tudominio.com/api/trpc/payment.confirm`
+- URL: `https://tudominio.com/api/flow/webhook`
 - Verificar que sea accesible públicamente
 
 #### 6. Testing en Producción

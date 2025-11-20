@@ -426,9 +426,13 @@ export const appRouter = router({
           const commerceOrder = `ALMA-${order.id}-${Date.now()}`;
 
           // Obtener URLs de entorno
-          const baseUrl = process.env.FLOW_RETURN_URL?.replace("/payment/success", "") || "http://localhost:5000";
-          const urlReturn = `${baseUrl}/payment/success`;
-          const urlConfirmation = `${baseUrl}/api/trpc/payment.confirm`;
+          const defaultBaseUrl = "http://localhost:5000";
+          const urlReturn =
+            process.env.FLOW_RETURN_URL ||
+            `${defaultBaseUrl}/payment/success`;
+          const urlConfirmation =
+            process.env.FLOW_CONFIRMATION_URL ||
+            `${defaultBaseUrl}/api/flow/webhook`;
 
           // Crear orden de pago en Flow
           const flowPayment = await createFlowPayment({

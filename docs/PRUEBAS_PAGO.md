@@ -18,6 +18,7 @@ FLOW_API_KEY=tu-api-key-sandbox
 FLOW_SECRET_KEY=tu-secret-key-sandbox
 FLOW_API_URL=https://sandbox.flow.cl/api
 FLOW_RETURN_URL=http://localhost:5000/payment/success
+FLOW_CONFIRMATION_URL=http://localhost:5000/api/flow/webhook
 FLOW_CANCEL_URL=http://localhost:5000/payment/error
 
 # Base de datos

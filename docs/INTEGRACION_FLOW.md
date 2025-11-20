@@ -65,7 +65,7 @@ Sistema completo de pagos online integrado con Flow, la pasarela de pagos líder
    ↓
 8. Usuario completa pago en Flow
    ↓
-9. Flow confirma pago (webhook)
+9. Flow confirma pago llamando a `/api/flow/webhook`
    ↓
 10. Backend actualiza transacción y orden
     ↓
@@ -92,7 +92,7 @@ Sistema completo de pagos online integrado con Flow, la pasarela de pagos líder
 
 3. **`server/routers.ts`** - Endpoints tRPC
    - `payment.create` - Crea orden de pago
-   - `payment.confirm` - Confirma pago (webhook)
+   - `payment.confirm` - Confirma pago (usado por el webhook REST `/api/flow/webhook` y la confirmación manual)
    - `payment.status` - Consulta estado
 
 #### Frontend
@@ -146,6 +146,7 @@ FLOW_API_KEY=tu-api-key-sandbox
 FLOW_SECRET_KEY=tu-secret-key-sandbox
 FLOW_API_URL=https://sandbox.flow.cl/api
 FLOW_RETURN_URL=http://localhost:5000/payment/success
+FLOW_CONFIRMATION_URL=http://localhost:5000/api/flow/webhook
 FLOW_CANCEL_URL=http://localhost:5000/payment/error
 
 # Flow - Producción
@@ -153,6 +154,7 @@ FLOW_CANCEL_URL=http://localhost:5000/payment/error
 # FLOW_SECRET_KEY=tu-secret-key-produccion
 # FLOW_API_URL=https://www.flow.cl/api
 # FLOW_RETURN_URL=https://tudominio.com/payment/success
+# FLOW_CONFIRMATION_URL=https://tudominio.com/api/flow/webhook
 # FLOW_CANCEL_URL=https://tudominio.com/payment/error
 ```
 
@@ -163,7 +165,7 @@ FLOW_CANCEL_URL=http://localhost:5000/payment/error
 3. **Obtener API Key y Secret Key**
 4. **Configurar URLs de retorno**:
    - URL de éxito: `https://tudominio.com/payment/success`
-   - URL de confirmación (webhook): `https://tudominio.com/api/trpc/payment.confirm`
+   - URL de confirmación (webhook): `https://tudominio.com/api/flow/webhook`
 
 ### Aplicar Migración
 
@@ -375,7 +377,7 @@ FLOW_SECRET_KEY=tu-secret-key
 **Causa**: URL de confirmación no configurada en Flow  
 **Solución**:
 - Ir a Flow dashboard
-- Configurar URL de webhook: `https://tudominio.com/api/trpc/payment.confirm`
+- Configurar URL de webhook: `https://tudominio.com/api/flow/webhook`
 - Verificar que sea accesible públicamente
 - Revisar logs del servidor
 

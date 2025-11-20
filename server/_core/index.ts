@@ -49,6 +49,42 @@ async function startServer() {
 
   app.use(loginLimiter);
 
+  app.post("/api/flow/webhook", async (req, res) => {
+    const token =
+      (typeof req.body?.token === "string" && req.body.token.trim()) ||
+      (typeof req.query?.token === "string" ? req.query.token : "");
+    const signature =
+      (typeof req.body?.s === "string" && req.body.s) ||
+      (typeof req.query?.s === "string" ? req.query.s : undefined);
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: "Token de Flow requerido",
+      });
+    }
+
+    try {
+      const ctx = await createContext({ req, res });
+      const caller = appRouter.createCaller(ctx);
+      const result = await caller.payment.confirm({
+        token,
+        s: signature,
+      });
+
+      res.json({
+        success: true,
+        status: result.status,
+      });
+    } catch (error: any) {
+      console.error("[Flow] Error al procesar webhook:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Error al confirmar pago",
+      });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",
