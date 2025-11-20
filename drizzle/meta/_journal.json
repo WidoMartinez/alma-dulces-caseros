@@ -15,6 +15,13 @@
       "when": 1762626605253,
       "tag": "0001_fine_captain_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1763519475434,
+      "tag": "0002_sticky_maverick",
+      "breakpoints": true
     }
   ]
 }

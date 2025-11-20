@@ -13,6 +13,12 @@ import {
   paymentTransactions,
   InsertPaymentTransaction,
   PaymentTransaction,
+  dispatchSettings,
+  DispatchSettings,
+  InsertDispatchSettings,
+  blockedDates,
+  BlockedDate,
+  InsertBlockedDate,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -876,6 +882,269 @@ export async function getOrderById(orderId: number) {
     return { ...order, items };
   } catch (error) {
     console.error("[Database] Failed to get order by id:", error);
+    throw error;
+  }
+}
+
+// Funciones para gestión de reservas
+
+/**
+ * Obtiene todas las reservas con información del usuario y producto
+ */
+export async function getAllReservations() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    // Obtener todas las reservas
+    const allReservations = await db
+      .select()
+      .from(reservations);
+
+    // Para cada reserva, obtener información del usuario y producto
+    const reservationsWithDetails = await Promise.all(
+      allReservations.map(async (reservation) => {
+        const user = await getUserById(reservation.userId);
+        const product = await getProductById(reservation.productId);
+        
+        return {
+          ...reservation,
+          user: user ? {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+          } : null,
+          product: product ? {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+          } : null,
+        };
+      })
+    );
+
+    return reservationsWithDetails;
+  } catch (error) {
+    console.error("[Database] Failed to get all reservations:", error);
+    throw error;
+  }
+}
+
+/**
+ * Actualiza el estado de una reserva
+ */
+export async function updateReservationStatus(
+  reservationId: number,
+  status: "pending" | "confirmed" | "cancelled" | "completed"
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db
+      .update(reservations)
+      .set({ status })
+      .where(eq(reservations.id, reservationId));
+  } catch (error) {
+    console.error("[Database] Failed to update reservation status:", error);
+    throw error;
+  }
+}
+
+// Funciones para configuración de despachos
+
+/**
+ * Obtiene la configuración actual de despachos
+ * Si no existe, retorna una configuración por defecto
+ */
+export async function getDispatchSettings(): Promise<DispatchSettings> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(dispatchSettings)
+      .limit(1);
+    
+    // Si no existe configuración, crear una por defecto
+    if (result.length === 0) {
+      const defaultSettings: InsertDispatchSettings = {
+        availableDays: JSON.stringify([1, 2, 3, 4, 5]), // Lunes a Viernes
+        startTime: "09:00",
+        endTime: "18:00",
+        minAdvanceDays: 1,
+        maxAdvanceDays: 30,
+      };
+      
+      const insertResult = await db.insert(dispatchSettings).values(defaultSettings);
+      const settingsId = Number(insertResult[0].insertId);
+      
+      const newSettings = await db
+        .select()
+        .from(dispatchSettings)
+        .where(eq(dispatchSettings.id, settingsId))
+        .limit(1);
+      
+      return newSettings[0];
+    }
+    
+    return result[0];
+  } catch (error) {
+    console.error("[Database] Failed to get dispatch settings:", error);
+    throw error;
+  }
+}
+
+/**
+ * Actualiza la configuración de despachos
+ */
+export async function updateDispatchSettings(
+  settingsData: Partial<InsertDispatchSettings>
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    // Obtener la configuración actual para obtener el ID
+    const current = await getDispatchSettings();
+    
+    await db
+      .update(dispatchSettings)
+      .set(settingsData)
+      .where(eq(dispatchSettings.id, current.id));
+    
+    return getDispatchSettings();
+  } catch (error) {
+    console.error("[Database] Failed to update dispatch settings:", error);
+    throw error;
+  }
+}
+
+// Funciones para fechas bloqueadas
+
+/**
+ * Obtiene todas las fechas bloqueadas
+ */
+export async function getAllBlockedDates(): Promise<BlockedDate[]> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db.select().from(blockedDates);
+  } catch (error) {
+    console.error("[Database] Failed to get blocked dates:", error);
+    throw error;
+  }
+}
+
+/**
+ * Agrega una nueva fecha bloqueada
+ */
+export async function addBlockedDate(
+  dateData: InsertBlockedDate
+): Promise<BlockedDate> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const result = await db.insert(blockedDates).values(dateData);
+    const dateId = Number(result[0].insertId);
+    
+    const blockedDate = await db
+      .select()
+      .from(blockedDates)
+      .where(eq(blockedDates.id, dateId))
+      .limit(1);
+    
+    return blockedDate[0];
+  } catch (error) {
+    console.error("[Database] Failed to add blocked date:", error);
+    throw error;
+  }
+}
+
+/**
+ * Elimina una fecha bloqueada
+ */
+export async function removeBlockedDate(dateId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.delete(blockedDates).where(eq(blockedDates.id, dateId));
+  } catch (error) {
+    console.error("[Database] Failed to remove blocked date:", error);
+    throw error;
+  }
+}
+
+/**
+ * Verifica si una fecha está disponible para despacho
+ * @param date Fecha a verificar
+ * @returns true si la fecha está disponible, false si está bloqueada
+ */
+export async function isDateAvailableForDispatch(date: Date): Promise<boolean> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    // Verificar si la fecha está en las fechas bloqueadas
+    const dateStart = new Date(date);
+    dateStart.setHours(0, 0, 0, 0);
+    const dateEnd = new Date(date);
+    dateEnd.setHours(23, 59, 59, 999);
+    
+    const blockedDate = await db
+      .select()
+      .from(blockedDates)
+      .where(eq(blockedDates.date, dateStart))
+      .limit(1);
+    
+    if (blockedDate.length > 0) {
+      return false;
+    }
+    
+    // Obtener configuración de despachos
+    const settings = await getDispatchSettings();
+    const availableDays = JSON.parse(settings.availableDays) as number[];
+    
+    // Verificar si el día de la semana está disponible (0=Domingo, 6=Sábado)
+    const dayOfWeek = date.getDay();
+    if (!availableDays.includes(dayOfWeek)) {
+      return false;
+    }
+    
+    // Verificar si está dentro del rango de anticipación
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffTime = date.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < settings.minAdvanceDays || diffDays > settings.maxAdvanceDays) {
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to check date availability:", error);
     throw error;
   }
 }

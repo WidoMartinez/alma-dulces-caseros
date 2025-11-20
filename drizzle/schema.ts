@@ -143,3 +143,45 @@ export const paymentTransactions = mysqlTable("paymentTransactions", {
 
 export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
 export type InsertPaymentTransaction = typeof paymentTransactions.$inferInsert;
+
+/**
+ * Tabla de configuración de días y horarios de despacho
+ * Almacena la configuración global para disponibilidad de despachos
+ */
+export const dispatchSettings = mysqlTable("dispatchSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Días de la semana disponibles para despacho (JSON array: [0-6], 0=Domingo) */
+  availableDays: text("availableDays").notNull(), // JSON: [1,2,3,4,5] = Lunes a Viernes
+  /** Hora de inicio de despacho en formato HH:mm */
+  startTime: varchar("startTime", { length: 5 }).notNull().default("09:00"),
+  /** Hora de fin de despacho en formato HH:mm */
+  endTime: varchar("endTime", { length: 5 }).notNull().default("18:00"),
+  /** Días de anticipación mínima para reservar */
+  minAdvanceDays: int("minAdvanceDays").notNull().default(1),
+  /** Días de anticipación máxima para reservar */
+  maxAdvanceDays: int("maxAdvanceDays").notNull().default(30),
+  /** Fecha de creación */
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  /** Fecha de última actualización */
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DispatchSettings = typeof dispatchSettings.$inferSelect;
+export type InsertDispatchSettings = typeof dispatchSettings.$inferInsert;
+
+/**
+ * Tabla de fechas bloqueadas (feriados, días no laborables)
+ * Permite bloquear fechas específicas para no permitir despachos
+ */
+export const blockedDates = mysqlTable("blockedDates", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Fecha bloqueada */
+  date: timestamp("date").notNull(),
+  /** Razón del bloqueo (ej: "Feriado Nacional", "Vacaciones") */
+  reason: varchar("reason", { length: 255 }).notNull(),
+  /** Fecha de creación */
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type BlockedDate = typeof blockedDates.$inferSelect;
+export type InsertBlockedDate = typeof blockedDates.$inferInsert;
