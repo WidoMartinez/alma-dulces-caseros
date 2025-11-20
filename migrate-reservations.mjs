@@ -23,7 +23,7 @@ async function main() {
   console.log("✅ Migraciones aplicadas exitosamente");
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error("❌ Error al aplicar migraciones:", error);
   process.exit(1);
 });

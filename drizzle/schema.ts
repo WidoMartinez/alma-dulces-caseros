@@ -1,4 +1,11 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -76,7 +83,15 @@ export const orders = mysqlTable("orders", {
   /** Indica si es una compra como invitado */
   isGuest: int("isGuest").default(0).notNull(),
   totalPrice: int("totalPrice").notNull(), // Total in cents
-  status: mysqlEnum("status", ["pending", "confirmed", "shipped", "delivered", "cancelled"]).default("pending").notNull(),
+  status: mysqlEnum("status", [
+    "pending",
+    "confirmed",
+    "shipped",
+    "delivered",
+    "cancelled",
+  ])
+    .default("pending")
+    .notNull(),
   deliveryDate: timestamp("deliveryDate"),
   deliveryAddress: text("deliveryAddress").notNull(),
   notes: text("notes"),
@@ -102,7 +117,14 @@ export const reservations = mysqlTable("reservations", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   reservedDate: timestamp("reservedDate").notNull(),
-  status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed"]).default("pending").notNull(),
+  status: mysqlEnum("status", [
+    "pending",
+    "confirmed",
+    "cancelled",
+    "completed",
+  ])
+    .default("pending")
+    .notNull(),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -138,7 +160,9 @@ export const paymentTransactions = mysqlTable("paymentTransactions", {
   /** Monto de la transacción en centavos */
   amount: int("amount").notNull(),
   /** Estado de la transacción */
-  status: mysqlEnum("status", ["pending", "completed", "rejected", "cancelled"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "completed", "rejected", "cancelled"])
+    .default("pending")
+    .notNull(),
   /** Método de pago utilizado (Webpay, Servipag, etc) */
   paymentMethod: varchar("paymentMethod", { length: 50 }),
   /** Datos adicionales de la transacción en formato JSON */

@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Users, Package, ShoppingCart, Trash2, Plus } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Users,
+  Package,
+  ShoppingCart,
+  Trash2,
+  Plus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
@@ -22,7 +30,9 @@ interface CartItem {
   price: number;
 }
 
-export default function ReservationSection({ isAuthenticated }: ReservationSectionProps) {
+export default function ReservationSection({
+  isAuthenticated,
+}: ReservationSectionProps) {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
@@ -43,7 +53,7 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
       setNotes("");
       setCart([]);
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Error al crear la reserva");
     },
   });
@@ -60,23 +70,28 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
 
     // Verificar si el producto ya está en el carrito
     const existingItem = cart.find(item => item.productId === product.id);
-    
+
     if (existingItem) {
       // Actualizar cantidad
-      setCart(cart.map(item =>
-        item.productId === product.id
-          ? { ...item, quantity: item.quantity + quantity }
-          : item
-      ));
+      setCart(
+        cart.map(item =>
+          item.productId === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        )
+      );
       toast.success(`Cantidad actualizada: ${product.name}`);
     } else {
       // Agregar nuevo item
-      setCart([...cart, {
-        productId: product.id,
-        productName: product.name,
-        quantity,
-        price: product.price,
-      }]);
+      setCart([
+        ...cart,
+        {
+          productId: product.id,
+          productName: product.name,
+          quantity,
+          price: product.price,
+        },
+      ]);
       toast.success(`Agregado al carrito: ${product.name}`);
     }
 
@@ -98,11 +113,11 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
       handleRemoveFromCart(productId);
       return;
     }
-    setCart(cart.map(item =>
-      item.productId === productId
-        ? { ...item, quantity: newQuantity }
-        : item
-    ));
+    setCart(
+      cart.map(item =>
+        item.productId === productId ? { ...item, quantity: newQuantity } : item
+      )
+    );
   };
 
   const handleReserve = () => {
@@ -152,7 +167,9 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
             Sistema de <span className="gradient-accent">Reservas</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Reserva tus dulces favoritos con anticipación. Elige la fecha que desees y nosotros nos encargaremos de preparar tus productos con la máxima calidad.
+            Reserva tus dulces favoritos con anticipación. Elige la fecha que
+            desees y nosotros nos encargaremos de preparar tus productos con la
+            máxima calidad.
           </p>
         </div>
 
@@ -160,43 +177,64 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
           {/* Left - Steps */}
           <div className="space-y-6">
             <div className="flex gap-4">
-              <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
-                step >= 1 ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
-              }`}>
+              <div
+                className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                  step >= 1
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
                 1
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-1">Selecciona la Fecha</h3>
+                <h3 className="text-lg font-semibold mb-1">
+                  Selecciona la Fecha
+                </h3>
                 <p className="text-muted-foreground text-sm">
-                  Elige cuándo deseas recibir tus dulces. Disponemos de entregas desde mañana.
+                  Elige cuándo deseas recibir tus dulces. Disponemos de entregas
+                  desde mañana.
                 </p>
               </div>
             </div>
 
             <div className="flex gap-4">
-              <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
-                step >= 2 ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
-              }`}>
+              <div
+                className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                  step >= 2
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
                 2
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-1">Elige la Cantidad</h3>
+                <h3 className="text-lg font-semibold mb-1">
+                  Elige la Cantidad
+                </h3>
                 <p className="text-muted-foreground text-sm">
-                  Especifica cuántas unidades deseas reservar de tus productos favoritos.
+                  Especifica cuántas unidades deseas reservar de tus productos
+                  favoritos.
                 </p>
               </div>
             </div>
 
             <div className="flex gap-4">
-              <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
-                step >= 3 ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
-              }`}>
+              <div
+                className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                  step >= 3
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
                 3
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-1">Confirma tu Reserva</h3>
+                <h3 className="text-lg font-semibold mb-1">
+                  Confirma tu Reserva
+                </h3>
                 <p className="text-muted-foreground text-sm">
-                  Recibe una confirmación por correo y recibirás tus dulces en la fecha acordada.
+                  Recibe una confirmación por correo y recibirás tus dulces en
+                  la fecha acordada.
                 </p>
               </div>
             </div>
@@ -226,8 +264,11 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
                       <SelectValue placeholder="Selecciona un producto" />
                     </SelectTrigger>
                     <SelectContent>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.id.toString()}>
+                      {products.map(product => (
+                        <SelectItem
+                          key={product.id}
+                          value={product.id.toString()}
+                        >
                           {product.name} - ${(product.price / 100).toFixed(0)}
                         </SelectItem>
                       ))}
@@ -243,7 +284,9 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
                         >
                           −
                         </button>
-                        <span className="text-lg font-bold min-w-8 text-center">{quantity}</span>
+                        <span className="text-lg font-bold min-w-8 text-center">
+                          {quantity}
+                        </span>
                         <button
                           onClick={() => setQuantity(quantity + 1)}
                           className="px-3 py-2 border border-border rounded-lg hover:bg-accent/10 transition-colors"
@@ -277,20 +320,27 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
                     Productos en tu carrito ({cart.length})
                   </h4>
                   <div className="space-y-2">
-                    {cart.map((item) => (
+                    {cart.map(item => (
                       <div
                         key={item.productId}
                         className="flex items-center justify-between gap-3 p-3 bg-accent/5 rounded-lg"
                       >
                         <div className="flex-1">
-                          <p className="font-medium text-sm">{item.productName}</p>
+                          <p className="font-medium text-sm">
+                            {item.productName}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             ${(item.price / 100).toFixed(0)} c/u
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleUpdateCartQuantity(item.productId, item.quantity - 1)}
+                            onClick={() =>
+                              handleUpdateCartQuantity(
+                                item.productId,
+                                item.quantity - 1
+                              )
+                            }
                             className="px-2 py-1 border border-border rounded hover:bg-accent/10 transition-colors text-sm"
                           >
                             −
@@ -299,7 +349,12 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => handleUpdateCartQuantity(item.productId, item.quantity + 1)}
+                            onClick={() =>
+                              handleUpdateCartQuantity(
+                                item.productId,
+                                item.quantity + 1
+                              )
+                            }
                             className="px-2 py-1 border border-border rounded hover:bg-accent/10 transition-colors text-sm"
                           >
                             +
@@ -328,7 +383,7 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
                   <input
                     type="date"
                     value={selectedDate}
-                    onChange={(e) => {
+                    onChange={e => {
                       setSelectedDate(e.target.value);
                       setStep(Math.max(step, 3));
                     }}
@@ -337,7 +392,8 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-background"
                   />
                   <p className="text-xs text-muted-foreground mt-2">
-                    Reserva con {minAdvanceDays} día{minAdvanceDays > 1 ? 's' : ''} de anticipación mínima
+                    Reserva con {minAdvanceDays} día
+                    {minAdvanceDays > 1 ? "s" : ""} de anticipación mínima
                   </p>
                 </div>
               )}
@@ -351,7 +407,7 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
                   </label>
                   <textarea
                     value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
+                    onChange={e => setNotes(e.target.value)}
                     placeholder="Cuéntanos si tienes preferencias especiales..."
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-background resize-none"
                     rows={3}
@@ -366,13 +422,21 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
                     <strong>Resumen de tu reserva:</strong>
                   </p>
                   <p className="text-sm">
-                    Fecha: <strong>{new Date(selectedDate + 'T12:00:00').toLocaleDateString("es-CL")}</strong>
+                    Fecha:{" "}
+                    <strong>
+                      {new Date(selectedDate + "T12:00:00").toLocaleDateString(
+                        "es-CL"
+                      )}
+                    </strong>
                   </p>
                   <p className="text-sm">
                     Total de productos: <strong>{cart.length}</strong>
                   </p>
                   <p className="text-sm">
-                    Total de unidades: <strong>{cart.reduce((sum, item) => sum + item.quantity, 0)}</strong>
+                    Total de unidades:{" "}
+                    <strong>
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    </strong>
                   </p>
                 </div>
               )}
@@ -381,7 +445,12 @@ export default function ReservationSection({ isAuthenticated }: ReservationSecti
               <div className="space-y-3 pt-4">
                 <Button
                   onClick={handleReserve}
-                  disabled={!selectedDate || cart.length === 0 || !isAuthenticated || createReservationMutation.isPending}
+                  disabled={
+                    !selectedDate ||
+                    cart.length === 0 ||
+                    !isAuthenticated ||
+                    createReservationMutation.isPending
+                  }
                   className="w-full"
                 >
                   {createReservationMutation.isPending ? (

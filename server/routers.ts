@@ -240,7 +240,10 @@ export const appRouter = router({
           // Procesar deliveryDate correctamente para evitar problemas de zona horaria
           let deliveryDate: Date | undefined;
           if (input.deliveryDate) {
-            const [year, month, day] = input.deliveryDate.split('T')[0].split('-').map(Number);
+            const [year, month, day] = input.deliveryDate
+              .split("T")[0]
+              .split("-")
+              .map(Number);
             deliveryDate = new Date(year, month - 1, day, 12, 0, 0); // Mediodía para evitar problemas de timezone
           }
 
@@ -354,23 +357,32 @@ export const appRouter = router({
     create: protectedProcedure
       .input(
         z.object({
-          items: z.array(
-            z.object({
-              productId: z.number(),
-              quantity: z.number().min(1, "La cantidad debe ser al menos 1"),
-            })
-          ).min(1, "Debes agregar al menos un producto"),
+          items: z
+            .array(
+              z.object({
+                productId: z.number(),
+                quantity: z.number().min(1, "La cantidad debe ser al menos 1"),
+              })
+            )
+            .min(1, "Debes agregar al menos un producto"),
           reservedDate: z.string(), // ISO date string
           notes: z.string().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
-        console.log("[Reservations] Creando nueva reserva con", input.items.length, "items");
+        console.log(
+          "[Reservations] Creando nueva reserva con",
+          input.items.length,
+          "items"
+        );
 
         try {
           // Convertir la fecha string a Date
           // Para evitar problemas de zona horaria, parseamos la fecha en formato local
-          const [year, month, day] = input.reservedDate.split('T')[0].split('-').map(Number);
+          const [year, month, day] = input.reservedDate
+            .split("T")[0]
+            .split("-")
+            .map(Number);
           const reservedDate = new Date(year, month - 1, day, 12, 0, 0); // Mediodía para evitar problemas de timezone
 
           console.log("[Reservations] Fecha recibida:", input.reservedDate);
@@ -383,7 +395,10 @@ export const appRouter = router({
             notes: input.notes,
           });
 
-          console.log("[Reservations] Reserva creada exitosamente:", reservation.id);
+          console.log(
+            "[Reservations] Reserva creada exitosamente:",
+            reservation.id
+          );
 
           return {
             success: true,
@@ -603,7 +618,10 @@ export const appRouter = router({
           console.log("[Admin] Agregando fecha bloqueada:", input.date);
           try {
             // Parsear la fecha correctamente para evitar problemas de zona horaria
-            const [year, month, day] = input.date.split('T')[0].split('-').map(Number);
+            const [year, month, day] = input.date
+              .split("T")[0]
+              .split("-")
+              .map(Number);
             const dateObj = new Date(year, month - 1, day, 0, 0, 0, 0);
 
             // Validar que la fecha sea válida

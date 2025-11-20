@@ -430,41 +430,46 @@ export async function getUserOrders(userId: number) {
 export async function getUserReservations(userId: number) {
   const db = await getDb();
   if (!db) return [];
-  
+
   // Obtener las reservas del usuario
-  const userReservations = await db.select().from(reservations).where(eq(reservations.userId, userId));
-  
+  const userReservations = await db
+    .select()
+    .from(reservations)
+    .where(eq(reservations.userId, userId));
+
   // Para cada reserva, obtener sus items con información del producto
   const reservationsWithItems = await Promise.all(
-    userReservations.map(async (reservation) => {
+    userReservations.map(async reservation => {
       const items = await db
         .select()
         .from(reservationItems)
         .where(eq(reservationItems.reservationId, reservation.id));
-      
+
       // Obtener información de cada producto
       const itemsWithProducts = await Promise.all(
-        items.map(async (item) => {
+        items.map(async item => {
           const product = await getProductById(item.productId);
           return {
             ...item,
-            product: product ? {
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              imageUrl: product.imageUrl,
-            } : null,
+            product: product
+              ? {
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  imageUrl: product.imageUrl,
+                }
+              : null,
           };
         })
       );
-      
+
       return {
         ...reservation,
         items: itemsWithProducts,
       };
     })
   );
-  
+
   return reservationsWithItems;
 }
 
@@ -487,7 +492,9 @@ export async function createReservation(reservationData: {
 
   try {
     // Verificar que la fecha esté disponible para despacho
-    const isAvailable = await isDateAvailableForDispatch(reservationData.reservedDate);
+    const isAvailable = await isDateAvailableForDispatch(
+      reservationData.reservedDate
+    );
     if (!isAvailable) {
       throw new Error("La fecha seleccionada no está disponible para reservas");
     }
@@ -506,7 +513,7 @@ export async function createReservation(reservationData: {
     });
 
     const reservationId = Number(result[0].insertId);
-    
+
     // Insertar los items de la reserva
     const itemsToInsert = reservationData.items.map(item => ({
       reservationId,
@@ -1052,25 +1059,27 @@ export async function getAllReservations() {
     const reservationsWithDetails = await Promise.all(
       allReservations.map(async reservation => {
         const user = await getUserById(reservation.userId);
-        
+
         // Obtener items de la reserva
         const items = await db
           .select()
           .from(reservationItems)
           .where(eq(reservationItems.reservationId, reservation.id));
-        
+
         // Obtener información de cada producto
         const itemsWithProducts = await Promise.all(
-          items.map(async (item) => {
+          items.map(async item => {
             const product = await getProductById(item.productId);
             return {
               ...item,
-              product: product ? {
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                imageUrl: product.imageUrl,
-              } : null,
+              product: product
+                ? {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: product.imageUrl,
+                  }
+                : null,
             };
           })
         );
