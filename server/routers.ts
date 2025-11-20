@@ -32,6 +32,7 @@ import {
   updatePaymentTransaction,
   getOrderById,
   getAllReservations,
+  createReservation,
   updateReservationStatus,
   getDispatchSettings,
   updateDispatchSettings,
@@ -344,6 +345,53 @@ export const appRouter = router({
     list: protectedProcedure.query(({ ctx }) =>
       getUserReservations(ctx.user.id)
     ),
+
+    create: protectedProcedure
+      .input(
+        z.object({
+          productId: z.number(),
+          quantity: z.number().min(1, "La cantidad debe ser al menos 1"),
+          reservedDate: z.string(), // ISO date string
+          notes: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        console.log("[Reservations] Creando nueva reserva");
+
+        try {
+          // Convertir la fecha string a Date
+          // Para evitar problemas de zona horaria, parseamos la fecha en formato local
+          const [year, month, day] = input.reservedDate.split('T')[0].split('-').map(Number);
+          const reservedDate = new Date(year, month - 1, day, 12, 0, 0); // Mediodía para evitar problemas de timezone
+
+          console.log("[Reservations] Fecha recibida:", input.reservedDate);
+          console.log("[Reservations] Fecha procesada:", reservedDate);
+
+          const reservation = await createReservation({
+            userId: ctx.user.id,
+            productId: input.productId,
+            quantity: input.quantity,
+            reservedDate,
+            notes: input.notes,
+          });
+
+          console.log("[Reservations] Reserva creada exitosamente:", reservation.id);
+
+          return {
+            success: true,
+            reservation,
+          };
+        } catch (error) {
+          console.error("[Reservations] Error al crear reserva:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Error al crear la reserva",
+          });
+        }
+      }),
   }),
 
   admin: router({
@@ -601,8 +649,23 @@ export const appRouter = router({
     }),
   }),
 
-  // Endpoint público para validar disponibilidad de fechas
+  // Endpoints públicos para despachos
   dispatch: router({
+    // Obtener configuración de despachos (público para mostrar fechas disponibles)
+    getSettings: publicProcedure.query(async () => {
+      console.log("[Dispatch] Obteniendo configuración de despachos (público)");
+      try {
+        return await getDispatchSettings();
+      } catch (error) {
+        console.error("[Dispatch] Error al obtener configuración:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener la configuración de despachos",
+        });
+      }
+    }),
+
+    // Validar disponibilidad de fecha
     checkAvailability: publicProcedure
       .input(
         z.object({

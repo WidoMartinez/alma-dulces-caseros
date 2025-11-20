@@ -432,6 +432,58 @@ export async function getUserReservations(userId: number) {
   return db.select().from(reservations).where(eq(reservations.userId, userId));
 }
 
+/**
+ * Crea una nueva reserva
+ */
+export async function createReservation(reservationData: {
+  userId: number;
+  productId: number;
+  quantity: number;
+  reservedDate: Date;
+  notes?: string;
+}) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    // Verificar que la fecha esté disponible para despacho
+    const isAvailable = await isDateAvailableForDispatch(reservationData.reservedDate);
+    if (!isAvailable) {
+      throw new Error("La fecha seleccionada no está disponible para reservas");
+    }
+
+    // Crear la reserva
+    const result = await db.insert(reservations).values({
+      userId: reservationData.userId,
+      productId: reservationData.productId,
+      quantity: reservationData.quantity,
+      reservedDate: reservationData.reservedDate,
+      notes: reservationData.notes || null,
+      status: "pending",
+    });
+
+    const reservationId = Number(result[0].insertId);
+    
+    // Obtener la reserva creada con información del usuario y producto
+    const createdReservation = await db
+      .select()
+      .from(reservations)
+      .where(eq(reservations.id, reservationId))
+      .limit(1);
+
+    if (createdReservation.length === 0) {
+      throw new Error("Failed to retrieve created reservation");
+    }
+
+    return createdReservation[0];
+  } catch (error) {
+    console.error("[Database] Failed to create reservation:", error);
+    throw error;
+  }
+}
+
 // Admin CRUD operations for products
 export async function createProduct(product: InsertProduct) {
   const db = await getDb();
