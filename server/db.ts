@@ -626,6 +626,52 @@ export async function getOrdersByUserId(userId: number) {
 }
 
 /**
+ * Obtiene todos los pedidos con sus items
+ */
+export async function getAllOrders() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    const allOrders = await db.select().from(orders);
+
+    // Obtener items para cada orden
+    const ordersWithItems = await Promise.all(
+      allOrders.map(async order => {
+        const items = await db
+          .select()
+          .from(orderItems)
+          .where(eq(orderItems.orderId, order.id));
+        
+        // Obtener información de usuario si existe
+        let user = null;
+        if (order.userId) {
+          user = await getUserById(order.userId);
+        }
+
+        return { 
+          ...order, 
+          items,
+          user: user ? {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+          } : null
+        };
+      })
+    );
+
+    return ordersWithItems;
+  } catch (error) {
+    console.error("[Database] Failed to get all orders:", error);
+    throw error;
+  }
+}
+
+/**
  * Actualiza el estado de un pedido
  */
 export async function updateOrderStatus(

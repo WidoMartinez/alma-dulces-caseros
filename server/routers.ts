@@ -22,6 +22,7 @@ import {
   createOrder,
   getOrderByTrackingNumber,
   getOrdersByUserId,
+  getAllOrders,
   updateOrderStatus,
   updateUserProfile,
   getUserById,
@@ -349,8 +350,16 @@ export const appRouter = router({
     // Gestión de pedidos para administradores
     orders: router({
       list: adminProcedure.query(async () => {
-        // Por ahora retorna un array vacío, se puede implementar más adelante
-        return [];
+        console.log("[Admin] Listando todos los pedidos");
+        try {
+          return await getAllOrders();
+        } catch (error) {
+          console.error("[Admin] Error al listar pedidos:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Error al obtener los pedidos",
+          });
+        }
       }),
 
       updateStatus: adminProcedure

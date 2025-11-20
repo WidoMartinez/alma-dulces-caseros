@@ -30,10 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Package, LogOut, Home, Calendar, Settings } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, LogOut, Home, Calendar, Settings, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, Category } from "@shared/types";
 import ReservationsManagement from "@/components/ReservationsManagement";
+import OrdersManagement from "@/components/OrdersManagement";
 import DispatchSettings from "@/components/DispatchSettings";
 import BlockedDatesManager from "@/components/BlockedDatesManager";
 
@@ -228,10 +229,14 @@ export default function Admin() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto">
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Productos</span>
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4" />
+              <span className="hidden sm:inline">Pedidos</span>
             </TabsTrigger>
             <TabsTrigger value="reservations" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -318,6 +323,11 @@ export default function Admin() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Tab de Pedidos */}
+          <TabsContent value="orders">
+            <OrdersManagement />
           </TabsContent>
 
           {/* Tab de Reservas */}
