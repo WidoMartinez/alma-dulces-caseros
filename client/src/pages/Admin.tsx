@@ -2,7 +2,13 @@ import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +36,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Package, LogOut, Home, Calendar, Settings, ShoppingBag } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Package,
+  LogOut,
+  Home,
+  Calendar,
+  Settings,
+  ShoppingBag,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { Product, Category } from "@shared/types";
 import ReservationsManagement from "@/components/ReservationsManagement";
@@ -58,8 +74,10 @@ export default function Admin() {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
-  
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(
+    null
+  );
+
   const [formData, setFormData] = useState<ProductFormData>({
     categoryId: 1,
     name: "",
@@ -84,7 +102,7 @@ export default function Admin() {
       utils.products.list.invalidate();
       closeProductDialog();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error("Error al crear producto: " + error.message);
     },
   });
@@ -95,7 +113,7 @@ export default function Admin() {
       utils.products.list.invalidate();
       closeProductDialog();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error("Error al actualizar producto: " + error.message);
     },
   });
@@ -107,7 +125,7 @@ export default function Admin() {
       setIsDeleteDialogOpen(false);
       setDeletingProductId(null);
     },
-    onError: (error) => {
+    onError: error => {
       toast.error("Error al eliminar producto: " + error.message);
     },
   });
@@ -156,7 +174,7 @@ export default function Admin() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingProduct) {
       updateProductMutation.mutate({
         id: editingProduct.id,
@@ -186,7 +204,7 @@ export default function Admin() {
   };
 
   const getCategoryName = (categoryId: number) => {
-    return categories.find((c) => c.id === categoryId)?.name || "Desconocido";
+    return categories.find(c => c.id === categoryId)?.name || "Desconocido";
   };
 
   // Verificar si el usuario es admin
@@ -201,7 +219,10 @@ export default function Admin() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => window.location.href = "/"} className="w-full">
+            <Button
+              onClick={() => (window.location.href = "/")}
+              className="w-full"
+            >
               <Home className="mr-2 h-4 w-4" />
               Volver al Inicio
             </Button>
@@ -226,7 +247,7 @@ export default function Admin() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.location.href = "/"}
+              onClick={() => (window.location.href = "/")}
             >
               <Home className="mr-2 h-4 w-4" />
               Inicio
@@ -250,7 +271,10 @@ export default function Admin() {
               <ShoppingBag className="h-4 w-4" />
               <span className="hidden sm:inline">Pedidos</span>
             </TabsTrigger>
-            <TabsTrigger value="reservations" className="flex items-center gap-2">
+            <TabsTrigger
+              value="reservations"
+              className="flex items-center gap-2"
+            >
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Reservas</span>
             </TabsTrigger>
@@ -258,7 +282,10 @@ export default function Admin() {
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Despachos</span>
             </TabsTrigger>
-            <TabsTrigger value="blocked-dates" className="flex items-center gap-2">
+            <TabsTrigger
+              value="blocked-dates"
+              className="flex items-center gap-2"
+            >
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Fechas Bloqueadas</span>
             </TabsTrigger>
@@ -303,11 +330,15 @@ export default function Admin() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {products.map((product) => (
+                      {products.map(product => (
                         <TableRow key={product.id}>
                           <TableCell>{product.id}</TableCell>
-                          <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>{getCategoryName(product.categoryId)}</TableCell>
+                          <TableCell className="font-medium">
+                            {product.name}
+                          </TableCell>
+                          <TableCell>
+                            {getCategoryName(product.categoryId)}
+                          </TableCell>
                           <TableCell>{formatPrice(product.price)}</TableCell>
                           <TableCell>
                             {product.hasWholeOption && product.wholePrice
@@ -386,7 +417,7 @@ export default function Admin() {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) =>
+                    onChange={e =>
                       setFormData({ ...formData, name: e.target.value })
                     }
                     required
@@ -396,7 +427,7 @@ export default function Admin() {
                   <Label htmlFor="category">Categoría*</Label>
                   <Select
                     value={formData.categoryId.toString()}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       setFormData({ ...formData, categoryId: parseInt(value) })
                     }
                   >
@@ -404,8 +435,11 @@ export default function Admin() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
+                      {categories.map(category => (
+                        <SelectItem
+                          key={category.id}
+                          value={category.id.toString()}
+                        >
                           {category.name}
                         </SelectItem>
                       ))}
@@ -419,7 +453,7 @@ export default function Admin() {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) =>
+                  onChange={e =>
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows={3}
@@ -431,7 +465,7 @@ export default function Admin() {
                 <Textarea
                   id="ingredients"
                   value={formData.ingredients}
-                  onChange={(e) =>
+                  onChange={e =>
                     setFormData({ ...formData, ingredients: e.target.value })
                   }
                   rows={2}
@@ -446,8 +480,11 @@ export default function Admin() {
                     type="number"
                     min="0"
                     value={formData.price}
-                    onChange={(e) =>
-                      setFormData({ ...formData, price: parseInt(e.target.value) || 0 })
+                    onChange={e =>
+                      setFormData({
+                        ...formData,
+                        price: parseInt(e.target.value) || 0,
+                      })
                     }
                     required
                   />
@@ -459,8 +496,11 @@ export default function Admin() {
                     type="number"
                     min="0"
                     value={formData.available}
-                    onChange={(e) =>
-                      setFormData({ ...formData, available: parseInt(e.target.value) || 0 })
+                    onChange={e =>
+                      setFormData({
+                        ...formData,
+                        available: parseInt(e.target.value) || 0,
+                      })
                     }
                     required
                   />
@@ -469,7 +509,7 @@ export default function Admin() {
                   <Label htmlFor="organic">Orgánico*</Label>
                   <Select
                     value={formData.organic.toString()}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       setFormData({ ...formData, organic: parseInt(value) })
                     }
                   >
@@ -489,36 +529,46 @@ export default function Admin() {
                 <Input
                   id="imageUrl"
                   value={formData.imageUrl}
-                  onChange={(e) =>
+                  onChange={e =>
                     setFormData({ ...formData, imageUrl: e.target.value })
                   }
                   placeholder="/images/products/nombre-producto.jpg"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Puedes usar una URL completa (https://...) o una ruta relativa (/images/products/...). 
-                  Sube tus imágenes a <code className="bg-muted px-1 py-0.5 rounded">client/public/images/products/</code>
+                  Puedes usar una URL completa (https://...) o una ruta relativa
+                  (/images/products/...). Sube tus imágenes a{" "}
+                  <code className="bg-muted px-1 py-0.5 rounded">
+                    client/public/images/products/
+                  </code>
                 </p>
               </div>
 
               {/* Opciones de Unidad Completa */}
               <div className="space-y-4 border-t pt-4">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="hasWholeOption" className="font-semibold text-base">
+                  <Label
+                    htmlFor="hasWholeOption"
+                    className="font-semibold text-base"
+                  >
                     Opción de Unidad Completa
                   </Label>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="hasWholeOption">¿Tiene opción completa?</Label>
+                  <Label htmlFor="hasWholeOption">
+                    ¿Tiene opción completa?
+                  </Label>
                   <Select
                     value={formData.hasWholeOption.toString()}
-                    onValueChange={(value) => {
+                    onValueChange={value => {
                       const hasWhole = parseInt(value);
-                      setFormData({ 
-                        ...formData, 
+                      setFormData({
+                        ...formData,
                         hasWholeOption: hasWhole,
                         // Limpiar campos si se deshabilita
-                        wholePrice: hasWhole === 0 ? undefined : formData.wholePrice,
-                        wholeName: hasWhole === 0 ? undefined : formData.wholeName,
+                        wholePrice:
+                          hasWhole === 0 ? undefined : formData.wholePrice,
+                        wholeName:
+                          hasWhole === 0 ? undefined : formData.wholeName,
                       });
                     }}
                   >
@@ -531,19 +581,25 @@ export default function Admin() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Habilita esta opción si el producto se puede vender por porción o completo
+                    Habilita esta opción si el producto se puede vender por
+                    porción o completo
                   </p>
                 </div>
 
                 {formData.hasWholeOption === 1 && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="wholeName">Nombre de Unidad Completa</Label>
+                      <Label htmlFor="wholeName">
+                        Nombre de Unidad Completa
+                      </Label>
                       <Input
                         id="wholeName"
                         value={formData.wholeName || ""}
-                        onChange={(e) =>
-                          setFormData({ ...formData, wholeName: e.target.value })
+                        onChange={e =>
+                          setFormData({
+                            ...formData,
+                            wholeName: e.target.value,
+                          })
                         }
                         placeholder="Ej: Torta Completa, Bandeja Completa"
                       />
@@ -552,14 +608,19 @@ export default function Admin() {
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="wholePrice">Precio Unidad Completa (CLP)*</Label>
+                      <Label htmlFor="wholePrice">
+                        Precio Unidad Completa (CLP)*
+                      </Label>
                       <Input
                         id="wholePrice"
                         type="number"
                         min="0"
                         value={formData.wholePrice || ""}
-                        onChange={(e) =>
-                          setFormData({ ...formData, wholePrice: parseInt(e.target.value) || 0 })
+                        onChange={e =>
+                          setFormData({
+                            ...formData,
+                            wholePrice: parseInt(e.target.value) || 0,
+                          })
                         }
                         required={formData.hasWholeOption === 1}
                         placeholder="Precio de la unidad completa"
@@ -583,7 +644,8 @@ export default function Admin() {
               <Button
                 type="submit"
                 disabled={
-                  createProductMutation.isPending || updateProductMutation.isPending
+                  createProductMutation.isPending ||
+                  updateProductMutation.isPending
                 }
               >
                 {editingProduct ? "Actualizar" : "Crear"} Producto
@@ -599,8 +661,8 @@ export default function Admin() {
           <DialogHeader>
             <DialogTitle>Confirmar Eliminación</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que deseas eliminar este producto? Esta acción no se
-              puede deshacer.
+              ¿Estás seguro de que deseas eliminar este producto? Esta acción no
+              se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

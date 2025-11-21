@@ -8,7 +8,11 @@ import ShareButtons from "@/components/ShareButtons";
 interface ProductsSectionProps {
   products: Product[];
   categories: Category[];
-  onAddToCart: (productId: number, quantity: number, isWholeUnit?: boolean) => void;
+  onAddToCart: (
+    productId: number,
+    quantity: number,
+    isWholeUnit?: boolean
+  ) => void;
 }
 
 export default function ProductsSection({
@@ -60,7 +64,8 @@ export default function ProductsSection({
             Nuestros <span className="gradient-accent">Productos</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Cada dulce es elaborado con los mejores ingredientes naturales y orgánicos, siguiendo recetas tradicionales con un toque moderno.
+            Cada dulce es elaborado con los mejores ingredientes naturales y
+            orgánicos, siguiendo recetas tradicionales con un toque moderno.
           </p>
         </div>
 
@@ -106,12 +111,13 @@ export default function ProductsSection({
                   src={getProductImage(product)}
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  onError={(e) => {
+                  onError={e => {
                     // Si la imagen falla, mostrar el emoji como fallback
                     const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const emojiDiv = target.nextElementSibling as HTMLDivElement;
-                    if (emojiDiv) emojiDiv.style.display = 'flex';
+                    target.style.display = "none";
+                    const emojiDiv =
+                      target.nextElementSibling as HTMLDivElement;
+                    if (emojiDiv) emojiDiv.style.display = "flex";
                   }}
                 />
                 {/* Fallback emoji si la imagen no carga */}
@@ -132,8 +138,10 @@ export default function ProductsSection({
 
               {/* Product Info */}
               <div className="p-6">
-                <h3 className="text-xl font-bold mb-2 text-foreground">{product.name}</h3>
-                
+                <h3 className="text-xl font-bold mb-2 text-foreground">
+                  {product.name}
+                </h3>
+
                 {product.description && (
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
                     {product.description}
@@ -152,10 +160,14 @@ export default function ProductsSection({
                     <Star
                       key={i}
                       size={14}
-                      className={i < 4 ? "fill-accent text-accent" : "text-muted"}
+                      className={
+                        i < 4 ? "fill-accent text-accent" : "text-muted"
+                      }
                     />
                   ))}
-                  <span className="text-xs text-muted-foreground ml-2">(12 reseñas)</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (12 reseñas)
+                  </span>
                 </div>
 
                 {/* Selector de Opción (Porción vs Completo) */}
@@ -163,7 +175,12 @@ export default function ProductsSection({
                   <div className="mb-4">
                     <div className="grid grid-cols-2 gap-2">
                       <button
-                        onClick={() => setIsWholeUnit(prev => ({ ...prev, [product.id]: false }))}
+                        onClick={() =>
+                          setIsWholeUnit(prev => ({
+                            ...prev,
+                            [product.id]: false,
+                          }))
+                        }
                         className={`px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
                           !isWholeUnit[product.id]
                             ? "bg-accent text-accent-foreground border-accent shadow-md"
@@ -173,7 +190,12 @@ export default function ProductsSection({
                         Porción
                       </button>
                       <button
-                        onClick={() => setIsWholeUnit(prev => ({ ...prev, [product.id]: true }))}
+                        onClick={() =>
+                          setIsWholeUnit(prev => ({
+                            ...prev,
+                            [product.id]: true,
+                          }))
+                        }
                         className={`px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
                           isWholeUnit[product.id]
                             ? "bg-accent text-accent-foreground border-accent shadow-md"
@@ -190,15 +212,20 @@ export default function ProductsSection({
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <span className="text-2xl font-bold text-accent">
-                      ${(
-                        (isWholeUnit[product.id] && product.hasWholeOption && product.wholePrice
+                      $
+                      {(
+                        (isWholeUnit[product.id] &&
+                        product.hasWholeOption &&
+                        product.wholePrice
                           ? product.wholePrice
                           : product.price) / 100
                       ).toFixed(2)}
                     </span>
                     {product.hasWholeOption && product.wholePrice && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {isWholeUnit[product.id] ? "Unidad completa" : "Por porción"}
+                        {isWholeUnit[product.id]
+                          ? "Unidad completa"
+                          : "Por porción"}
                       </p>
                     )}
                   </div>
@@ -207,7 +234,10 @@ export default function ProductsSection({
                       onClick={() =>
                         setQuantities(prev => ({
                           ...prev,
-                          [product.id]: Math.max(1, (prev[product.id] || 1) - 1),
+                          [product.id]: Math.max(
+                            1,
+                            (prev[product.id] || 1) - 1
+                          ),
                         }))
                       }
                       className="px-3 py-1 hover:bg-accent/10 transition-colors font-semibold"

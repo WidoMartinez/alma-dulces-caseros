@@ -3,9 +3,11 @@
 ## 📸 Imágenes Principales que Puedes Reemplazar
 
 ### 1. Logo del Sitio
+
 **Ubicación actual**: `client/public/alma-logo.svg`
 
 **Cómo reemplazar**:
+
 1. Prepara tu logo en formato SVG, PNG o JPG
 2. Colócalo en: `client/public/alma-logo.svg` (o `.png`)
 3. Si cambias el formato, actualiza `client/src/const.ts`:
@@ -14,6 +16,7 @@
    ```
 
 **Recomendaciones**:
+
 - SVG para mejor escalabilidad
 - PNG con fondo transparente
 - Tamaño: 200x200px mínimo
@@ -21,17 +24,20 @@
 ---
 
 ### 2. Imagen del Hero (Portada Principal)
+
 **Ubicación actual**: `client/public/images/hero/hero-main.svg`
 
 **Cómo reemplazar**:
+
 1. Prepara una imagen atractiva de tus dulces (1200x1200px)
 2. Guárdala como: `client/public/images/hero/hero-main.jpg`
 3. Actualiza `client/src/components/sections/HeroSection.tsx`:
    ```tsx
-   src="/images/hero/hero-main.jpg"  // Cambia .svg por .jpg
+   src = "/images/hero/hero-main.jpg"; // Cambia .svg por .jpg
    ```
 
 **Tips**:
+
 - Usa fotos profesionales de tus productos más llamativos
 - Fondo claro y limpio
 - Formato: JPG optimizado o WebP
@@ -39,17 +45,20 @@
 ---
 
 ### 3. Imagen de "Acerca de" (About)
+
 **Ubicación actual**: `client/public/images/about/about-chef.svg`
 
 **Cómo reemplazar**:
+
 1. Usa una foto personal o de tu espacio de trabajo
 2. Guárdala como: `client/public/images/about/about-chef.jpg`
 3. Actualiza `client/src/components/sections/AboutSection.tsx`:
    ```tsx
-   src="/images/about/about-chef.jpg"  // Cambia .svg por .jpg
+   src = "/images/about/about-chef.jpg"; // Cambia .svg por .jpg
    ```
 
 **Ideas**:
+
 - Foto tuya cocinando
 - Tu cocina/espacio de trabajo
 - Foto profesional con productos
@@ -58,9 +67,11 @@
 ---
 
 ### 4. Imágenes de Productos
+
 **Ubicación**: `client/public/images/products/`
 
 **Cómo agregar**:
+
 1. Toma fotos de tus productos (800x800px, fondo neutro)
 2. Guárdalas con nombres descriptivos:
    - `torta-chocolate.jpg`
@@ -72,6 +83,7 @@
    ```
 
 **Consejos para fotos de productos**:
+
 - Luz natural o caja de luz
 - Fondo blanco o de madera clara
 - Ángulo de 45° o cenital
@@ -81,6 +93,7 @@
 ---
 
 ### 5. Placeholder de Productos
+
 **Ubicación**: `client/public/images/products/placeholder.svg`
 
 Esta imagen se muestra cuando un producto no tiene foto. Puedes reemplazarla con tu propia imagen genérica.
@@ -90,11 +103,13 @@ Esta imagen se muestra cuando un producto no tiene foto. Puedes reemplazarla con
 ## 🛠️ Herramientas Recomendadas
 
 ### Para Optimizar Imágenes:
+
 - **TinyPNG** (https://tinypng.com/) - Comprime JPG/PNG
 - **Squoosh** (https://squoosh.app/) - Convierte a WebP
 - **SVGOMG** (https://jakearchibald.github.io/svgomg/) - Optimiza SVG
 
 ### Para Editar Fotos:
+
 - **Photopea** (https://www.photopea.com/) - Editor online gratuito
 - **Remove.bg** (https://www.remove.bg/) - Quitar fondos
 - **Canva** (https://www.canva.com/) - Diseños y composiciones
