@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <!-- Imagen de About - Representación de la propietaria cocinando -->
+  <defs>
+    <linearGradient id="aboutGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF5F5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFE4E1;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="apronGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD4E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFB5E8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fondo -->
+  <rect width="400" height="400" fill="url(#aboutGrad1)"/>
+  
+  <!-- Elementos decorativos -->
+  <circle cx="80" cy="80" r="40" fill="#FFB5E8" opacity="0.15"/>
+  <circle cx="330" cy="100" r="50" fill="#FFA07A" opacity="0.15"/>
+  <circle cx="90" cy="320" r="45" fill="#FFD4E5" opacity="0.15"/>
+  
+  <!-- Figura principal - Cocinera -->
+  <g transform="translate(200, 140)">
+    <!-- Cabeza -->
+    <circle cx="0" cy="0" r="45" fill="#F4C2A0"/>
+    
+    <!-- Cabello -->
+    <path d="M -40,-5 Q -45,-35 -30,-45 Q -15,-50 0,-48 Q 15,-50 30,-45 Q 45,-35 40,-5" 
+          fill="#5D4037"/>
+    <ellipse cx="-25" cy="-15" rx="15" ry="25" fill="#5D4037"/>
+    <ellipse cx="25" cy="-15" rx="15" ry="25" fill="#5D4037"/>
+    
+    <!-- Rostro -->
+    <ellipse cx="-15" cy="-5" rx="5" ry="8" fill="#3E2723"/>
+    <ellipse cx="15" cy="-5" rx="5" ry="8" fill="#3E2723"/>
+    <path d="M -8,10 Q 0,15 8,10" stroke="#8B4513" stroke-width="2" fill="none" stroke-linecap="round"/>
+    
+    <!-- Cuerpo con delantal -->
+    <rect x="-50" y="45" width="100" height="120" rx="15" fill="#E8B4A8"/>
+    
+    <!-- Delantal -->
+    <path d="M -35,50 L -35,160 L 35,160 L 35,50 Q 35,45 30,45 L -30,45 Q -35,45 -35,50 Z" 
+          fill="url(#apronGrad)"/>
+    <rect x="-15" y="55" width="30" height="8" rx="4" fill="#FF9EC9"/>
+    
+    <!-- Bolsillo del delantal -->
+    <rect x="-20" y="100" width="40" height="35" rx="5" fill="#FFE4F0" opacity="0.7"/>
+    <line x1="-15" y1="110" x2="15" y2="110" stroke="#FFB5E8" stroke-width="1.5"/>
+    
+    <!-- Corazón en el delantal -->
+    <g transform="translate(0, 75) scale(0.6)">
+      <path d="M 0,8 C -3,3 -8,1 -12,4 C -16,7 -16,13 -12,18 L 0,28 L 12,18 C 16,13 16,7 12,4 C 8,1 3,3 0,8 Z"
+            fill="#FF6B9D"/>
+    </g>
+    
+    <!-- Brazos -->
+    <ellipse cx="-55" cy="90" rx="12" ry="45" fill="#F4C2A0" transform="rotate(-15 -55 90)"/>
+    <ellipse cx="55" cy="90" rx="12" ry="45" fill="#F4C2A0" transform="rotate(15 55 90)"/>
+    
+    <!-- Manos sosteniendo -->
+    <circle cx="-65" cy="125" r="12" fill="#F4C2A0"/>
+    <circle cx="65" cy="125" r="12" fill="#F4C2A0"/>
+    
+    <!-- Batidor de cocina en mano derecha -->
+    <g transform="translate(65, 125)">
+      <rect x="-2" y="0" width="4" height="40" rx="2" fill="#8B7355"/>
+      <circle cx="0" cy="-8" r="15" stroke="#8B7355" stroke-width="3" fill="none"/>
+      <line x1="-10" y1="-8" x2="10" y2="-8" stroke="#8B7355" stroke-width="2"/>
+      <line x1="0" y1="-18" x2="0" y2="2" stroke="#8B7355" stroke-width="2"/>
+    </g>
+    
+    <!-- Tazón en mano izquierda -->
+    <g transform="translate(-65, 125)">
+      <ellipse cx="0" cy="0" rx="18" ry="6" fill="#E8D4C8"/>
+      <path d="M -18,0 L -20,12 Q -18,18 0,18 Q 18,18 20,12 L 18,0 Z" fill="#F5E6D3"/>
+      <ellipse cx="0" cy="0" rx="15" ry="5" fill="#FFF8DC"/>
+      <!-- Contenido del tazón -->
+      <ellipse cx="0" cy="2" rx="12" ry="4" fill="#FFE4C4"/>
+    </g>
+  </g>
+  
+  <!-- Elementos flotantes de cocina -->
+  <g opacity="0.6">
+    <!-- Estrellitas -->
+    <path d="M 320,280 L 325,285 L 330,280 L 325,275 Z" fill="#FFB5E8"/>
+    <path d="M 340,260 L 343,263 L 346,260 L 343,257 Z" fill="#FFA07A"/>
+    <path d="M 70,260 L 74,264 L 78,260 L 74,256 Z" fill="#FFD4E5"/>
+    <path d="M 60,290 L 63,293 L 66,290 L 63,287 Z" fill="#FFB5E8"/>
+  </g>
+  
+  <!-- Texto -->
+  <text x="200" y="380" font-family="'Georgia', serif" font-size="16" 
+        fill="#8B7355" text-anchor="middle" font-weight="600" opacity="0.7">
+    Con amor y dedicación
+  </text>
+</svg>

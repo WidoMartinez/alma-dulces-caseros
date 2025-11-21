@@ -8,18 +8,20 @@ export default function AboutSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* Left Visual */}
           <div className="relative h-96 md:h-full min-h-96 animate-slideInLeft">
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-pink-400/20 rounded-3xl"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative w-64 h-64 md:w-80 md:h-80">
-                <div className="absolute inset-0 border-2 border-accent/30 rounded-full"></div>
-                <div className="absolute inset-8 border-2 border-accent/20 rounded-full"></div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-6xl mb-4">👩‍🍳</div>
-                  <h3 className="text-2xl font-bold text-center">{BRAND_INFO.owner}</h3>
-                  <p className="text-sm text-muted-foreground text-center mt-2">
-                    Emprendedora de {BRAND_INFO.location}
-                  </p>
-                </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-pink-400/20 rounded-3xl overflow-hidden">
+              <img 
+                src="/images/about/about-chef.svg" 
+                alt={`${BRAND_INFO.owner} - Chef y Emprendedora`}
+                className="w-full h-full object-contain p-8 hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+            {/* Info overlay */}
+            <div className="absolute bottom-8 left-0 right-0 text-center px-4">
+              <div className="bg-white/90 backdrop-blur-sm rounded-lg py-3 px-4 inline-block shadow-lg">
+                <h3 className="text-xl font-bold text-foreground">{BRAND_INFO.owner}</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Emprendedora de {BRAND_INFO.location}
+                </p>
               </div>
             </div>
           </div>

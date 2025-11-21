@@ -33,6 +33,11 @@ export default function ProductsSection({
     setQuantities(prev => ({ ...prev, [productId]: 1 }));
   };
 
+  // Imagen por defecto si el producto no tiene imagen
+  const getProductImage = (product: Product): string => {
+    return product.imageUrl || "/images/products/placeholder.svg";
+  };
+
   const getProductEmoji = (productName: string): string => {
     const emojis: Record<string, string> = {
       "Tarta de Frutos Rojos": "🍓",
@@ -96,13 +101,29 @@ export default function ProductsSection({
               className="card-product group overflow-hidden hover:shadow-2xl transition-all duration-300"
             >
               {/* Product Image */}
-              <div className="relative h-64 bg-gradient-to-br from-accent/15 to-pink-400/15 flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="text-7xl group-hover:scale-125 transition-transform duration-300 animate-pulse-glow">
-                  {getProductEmoji(product.name)}
+              <div className="relative h-64 bg-gradient-to-br from-accent/15 to-pink-400/15 overflow-hidden">
+                <img
+                  src={getProductImage(product)}
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    // Si la imagen falla, mostrar el emoji como fallback
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const emojiDiv = target.nextElementSibling as HTMLDivElement;
+                    if (emojiDiv) emojiDiv.style.display = 'flex';
+                  }}
+                />
+                {/* Fallback emoji si la imagen no carga */}
+                <div className="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-accent/15 to-pink-400/15">
+                  <div className="text-7xl animate-pulse-glow">
+                    {getProductEmoji(product.name)}
+                  </div>
                 </div>
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 {product.organic === 1 && (
-                  <div className="absolute top-4 right-4 bg-accent text-accent-foreground px-3 py-1 rounded-full flex items-center gap-1 text-sm font-semibold shadow-md hover:shadow-lg transition-shadow">
+                  <div className="absolute top-4 right-4 bg-accent text-accent-foreground px-3 py-1 rounded-full flex items-center gap-1 text-sm font-semibold shadow-md hover:shadow-lg transition-shadow z-10">
                     <Leaf size={14} />
                     Orgánico
                   </div>

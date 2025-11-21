@@ -20,7 +20,9 @@ export default function HeroSection({ onShopClick }: HeroSectionProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Heart size={20} className="text-accent" />
-                <span className="text-sm font-semibold text-accent">Bienvenido a Alma</span>
+                <span className="text-sm font-semibold text-accent">
+                  Bienvenido a Alma
+                </span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold leading-tight">
                 Dulces Artesanales
@@ -29,20 +31,19 @@ export default function HeroSection({ onShopClick }: HeroSectionProps) {
             </div>
 
             <p className="text-lg text-muted-foreground max-w-lg">
-              Cada producto es cocinado artesanalmente por {BRAND_INFO.owner} con ingredientes naturales y orgánicos de la más alta calidad. Sabor auténtico, hecho con dedicación.
+              Cada producto es cocinado artesanalmente por {BRAND_INFO.owner}{" "}
+              con ingredientes naturales y orgánicos de la más alta calidad.
+              Sabor auténtico, hecho con dedicación.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button 
+              <Button
                 onClick={onShopClick}
                 className="btn-accent text-base px-8 py-6"
               >
                 Explorar Productos
               </Button>
-              <Button 
-                variant="outline"
-                className="text-base px-8 py-6"
-              >
+              <Button variant="outline" className="text-base px-8 py-6">
                 Más Información
               </Button>
             </div>
@@ -55,7 +56,9 @@ export default function HeroSection({ onShopClick }: HeroSectionProps) {
                 </div>
                 <div>
                   <p className="font-semibold text-sm">100% Natural</p>
-                  <p className="text-xs text-muted-foreground">Ingredientes orgánicos</p>
+                  <p className="text-xs text-muted-foreground">
+                    Ingredientes orgánicos
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -64,7 +67,9 @@ export default function HeroSection({ onShopClick }: HeroSectionProps) {
                 </div>
                 <div>
                   <p className="font-semibold text-sm">Artesanal</p>
-                  <p className="text-xs text-muted-foreground">Hecho con amor</p>
+                  <p className="text-xs text-muted-foreground">
+                    Hecho con amor
+                  </p>
                 </div>
               </div>
             </div>
@@ -72,22 +77,12 @@ export default function HeroSection({ onShopClick }: HeroSectionProps) {
 
           {/* Right Visual */}
           <div className="relative h-96 md:h-full min-h-96 animate-slideInRight">
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-pink-400/20 rounded-3xl"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative w-64 h-64 md:w-80 md:h-80">
-                {/* Decorative circles */}
-                <div className="absolute inset-0 border-2 border-accent/30 rounded-full animate-pulse-glow"></div>
-                <div className="absolute inset-8 border-2 border-accent/20 rounded-full"></div>
-                
-                {/* Center content */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-6xl mb-4">🍰</div>
-                  <h2 className="text-2xl font-bold text-center">Alma</h2>
-                  <p className="text-sm text-muted-foreground text-center mt-2">
-                    Dulces Caseros
-                  </p>
-                </div>
-              </div>
+              <img
+                src="/images/hero/hero-main.png"
+                alt="Dulces Artesanales Alma"
+                className="w-full h-full object-contain hover:scale-105 transition-transform duration-700"
+              />
             </div>
           </div>
         </div>

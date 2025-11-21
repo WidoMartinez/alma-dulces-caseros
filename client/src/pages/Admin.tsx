@@ -492,8 +492,12 @@ export default function Admin() {
                   onChange={(e) =>
                     setFormData({ ...formData, imageUrl: e.target.value })
                   }
-                  placeholder="https://ejemplo.com/imagen.jpg"
+                  placeholder="/images/products/nombre-producto.jpg"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Puedes usar una URL completa (https://...) o una ruta relativa (/images/products/...). 
+                  Sube tus imágenes a <code className="bg-muted px-1 py-0.5 rounded">client/public/images/products/</code>
+                </p>
               </div>
 
               {/* Opciones de Unidad Completa */}
